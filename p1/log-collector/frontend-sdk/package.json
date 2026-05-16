@@ -1,0 +1,26 @@
+{
+  "name": "log-sdk",
+  "version": "1.0.0",
+  "description": "Cross-platform log collection SDK",
+  "main": "dist/log-sdk.js",
+  "types": "dist/log-sdk.d.ts",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch"
+  },
+  "keywords": [
+    "log",
+    "sdk",
+    "logger",
+    "monitoring"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concat": "^1.0.3",
+    "uglify-js": "^3.17.4"
+  },
+  "files": [
+    "dist/"
+  ]
+}

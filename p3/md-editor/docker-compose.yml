@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: md-editor-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: md_editor
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - md-editor-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: md-editor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - md-editor-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  md-editor-network:
+    driver: bridge

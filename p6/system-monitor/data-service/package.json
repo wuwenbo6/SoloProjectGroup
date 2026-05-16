@@ -1,0 +1,10 @@
+{
+  "name": "data-service",
+  "version": "1.0.0",
+  "description": "System monitor data persistence service",
+  "main": "src/db.js",
+  "dependencies": {
+    "better-sqlite3": "^9.2.2",
+    "csv-writer": "^1.6.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "md-editor-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Markdown collaborative editor",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.3.4",
+    "pinia": "^2.1.6",
+    "socket.io-client": "^4.7.2",
+    "codemirror": "^5.65.15",
+    "marked": "^9.0.0",
+    "uuid": "^9.0.0",
+    "dexie": "^3.2.4",
+    "yjs": "^13.6.8",
+    "y-codemirror": "^3.0.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.3.4",
+    "vite": "^4.4.9"
+  }
+}

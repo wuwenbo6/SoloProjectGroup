@@ -1,2 +1,0 @@
-# SoloProjectGroup
-Solo projects
