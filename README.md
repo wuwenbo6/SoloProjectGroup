@@ -1,0 +1,2 @@
+# SoloProjectGroup
+Solo projects
