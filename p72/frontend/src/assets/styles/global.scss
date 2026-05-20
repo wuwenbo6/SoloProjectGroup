@@ -1,0 +1,55 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.el-card {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+}
+
+.el-card__header {
+  border-bottom: 1px solid rgba(71, 85, 105, 0.5) !important;
+  color: #38bdf8 !important;
+  font-weight: 600;
+}
+
+.el-table {
+  background: transparent !important;
+}
+
+.el-table th {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #94a3b8 !important;
+}
+
+.el-table tr {
+  background: rgba(30, 41, 59, 0.6) !important;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td {
+  background: rgba(30, 41, 59, 0.8) !important;
+}
+
+.el-table td, .el-table th.is-leaf {
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3) !important;
+}
+
+.warning-level {
+  color: #fbbf24;
+}
+
+.error-level {
+  color: #ef4444;
+}
+
+.success-level {
+  color: #22c55e;
+}

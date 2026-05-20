@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: folk-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - folk-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: folk-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - folk-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: folk-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - folk-network
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: folk-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - folk-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: folk-gateway
+    ports:
+      - "9000:9000"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER: http://admin:123456@eureka-server:8761/eureka/
+    networks:
+      - folk-network
+    depends_on:
+      - eureka-server
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: folk-order
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER: http://admin:123456@eureka-server:8761/eureka/
+      MYSQL_HOST: mysql
+    networks:
+      - folk-network
+    depends_on:
+      - eureka-server
+      - mysql
+
+  audit-service:
+    build:
+      context: ./audit-service
+      dockerfile: Dockerfile
+    container_name: folk-audit
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER: http://admin:123456@eureka-server:8761/eureka/
+      MYSQL_HOST: mysql
+    networks:
+      - folk-network
+    depends_on:
+      - eureka-server
+      - mysql
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: folk-payment
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER: http://admin:123456@eureka-server:8761/eureka/
+      MYSQL_HOST: mysql
+    networks:
+      - folk-network
+    depends_on:
+      - eureka-server
+      - mysql
+
+  message-service:
+    build:
+      context: ./message-service
+      dockerfile: Dockerfile
+    container_name: folk-message
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER: http://admin:123456@eureka-server:8761/eureka/
+      MYSQL_HOST: mysql
+      RABBITMQ_HOST: rabbitmq
+    networks:
+      - folk-network
+    depends_on:
+      - eureka-server
+      - mysql
+      - rabbitmq
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  folk-network:
+    driver: bridge

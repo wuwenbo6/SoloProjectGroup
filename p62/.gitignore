@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+python/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Build outputs
+dist/
+build/
+out/
+
+# Electron
+electron-builder/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Application data
+.phonograph/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp

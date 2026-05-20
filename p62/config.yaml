@@ -1,0 +1,32 @@
+audio:
+  sample_rate: 22050
+  hop_length: 512
+  supported_formats:
+    - .wav
+    - .mp3
+    - .flac
+    - .ogg
+    - .m4a
+
+features:
+  pitch: true
+  rhythm: true
+  timbre: true
+  energy: true
+  mfcc_coeffs: 20
+
+analysis:
+  n_clusters: 5
+  pca_components: 2
+  classifier_type: random_forest
+
+visualization:
+  host: 0.0.0.0
+  port: 8050
+  debug: true
+  theme: plotly_white
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  example_dir: data/examples

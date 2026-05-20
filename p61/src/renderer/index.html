@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>打字机数字化工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .app-container {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+    }
+
+    .sidebar {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h1 {
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      color: #ecf0f1;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-item:hover {
+      background: #34495e;
+    }
+
+    .nav-item.active {
+      background: #3498db;
+    }
+
+    .main-content {
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      margin-bottom: 20px;
+      font-size: 1.25rem;
+      color: #2c3e50;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .status-indicator.connected {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-indicator.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-indicator.connected .status-dot {
+      background: #28a745;
+    }
+
+    .status-indicator.disconnected .status-dot {
+      background: #dc3545;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .character-display {
+      font-family: 'Courier New', monospace;
+      font-size: 1.25rem;
+      padding: 16px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      min-height: 100px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .stat-card h3 {
+      font-size: 0.875rem;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .record-list {
+      list-style: none;
+    }
+
+    .record-item {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .record-item:last-child {
+      border-bottom: none;
+    }
+
+    .record-info {
+      flex: 1;
+    }
+
+    .record-type {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #e3f2fd;
+      color: #1976d2;
+      margin-right: 8px;
+    }
+
+    .record-date {
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    .image-drop-zone {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .image-drop-zone:hover, .image-drop-zone.dragover {
+      border-color: #3498db;
+      background: #f8f9fa;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <h1>⌨️ 打字机工具</h1>
+      <div class="nav-item active" data-page="connection">
+        <span>🔌</span> 连接设置
+      </div>
+      <div class="nav-item" data-page="collection">
+        <span>📝</span> 字符采集
+      </div>
+      <div class="nav-item" data-page="recognition">
+        <span>👁️</span> 图像识别
+      </div>
+      <div class="nav-item" data-page="transcription">
+        <span>📄</span> 转录编辑
+      </div>
+      <div class="nav-item" data-page="archive">
+        <span>💾</span> 档案管理
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div id="connection" class="page active">
+        <div class="card">
+          <h2>连接状态</h2>
+          <div id="connection-status" class="status-indicator disconnected">
+            <span class="status-dot"></span>
+            <span>未连接</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>串口设置</h2>
+          <div class="form-group">
+            <label>选择串口</label>
+            <select id="port-select" class="form-control">
+              <option value="">正在检测...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>波特率</label>
+            <select id="baudrate-select" class="form-control">
+              <option value="9600">9600</option>
+              <option value="19200">19200</option>
+              <option value="38400">38400</option>
+              <option value="115200" selected>115200</option>
+            </select>
+          </div>
+          <div class="btn-group">
+            <button id="refresh-ports-btn" class="btn btn-primary">刷新端口</button>
+            <button id="connect-btn" class="btn btn-success">连接</button>
+            <button id="disconnect-btn" class="btn btn-danger" disabled>断开连接</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="collection" class="page">
+        <div class="card">
+          <h2>采集会话</h2>
+          <div class="btn-group">
+            <button id="start-session-btn" class="btn btn-success">开始采集</button>
+            <button id="end-session-btn" class="btn btn-danger" disabled>结束采集</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>实时字符流</h2>
+          <div id="character-stream" class="character-display"></div>
+          <div style="margin-top: 16px;">
+            <span>字符数: <strong id="char-count">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="recognition" class="page">
+        <div class="card">
+          <h2>图像识别</h2>
+          <div id="drop-zone" class="image-drop-zone">
+            <p>📸 拖放图片到此处或点击上传</p>
+            <p style="font-size: 0.75rem; color: #999; margin-top: 8px;">支持 JPG、PNG 格式</p>
+          </div>
+          <input type="file" id="image-input" accept="image/*" class="hidden">
+        </div>
+
+        <div id="recognition-result" class="card hidden">
+          <h2>识别结果</h2>
+          <div id="recognized-text" class="character-display"></div>
+          <div style="margin-top: 16px;">
+            <p>置信度: <strong id="confidence">0%</strong></p>
+            <p>检测字体: <strong id="detected-font">-</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div id="transcription" class="page">
+        <div class="card">
+          <h2>转录编辑</h2>
+          <div class="form-group">
+            <label>文本内容</label>
+            <textarea id="transcription-text" class="form-control" rows="10" style="font-family: 'Courier New', monospace;"></textarea>
+          </div>
+          <div class="btn-group">
+            <button id="export-txt-btn" class="btn btn-primary">导出 TXT</button>
+            <button id="export-pdf-btn" class="btn btn-success">导出 PDF</button>
+            <button id="save-transcription-btn" class="btn btn-primary">保存转录</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>转录统计</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>字符数</h3>
+              <div class="value" id="stat-chars">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>词数</h3>
+              <div class="value" id="stat-words">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>行数</h3>
+              <div class="value" id="stat-lines">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="archive" class="page">
+        <div class="card">
+          <h2>档案统计</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>总记录数</h3>
+              <div class="value" id="total-records">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>转录记录</h3>
+              <div class="value" id="transcription-records">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>字体样式</h3>
+              <div class="value" id="font-records">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>最近记录</h2>
+          <ul id="record-list" class="record-list">
+            <li class="record-item">加载中...</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./renderer.ts"></script>
+</body>
+</html>

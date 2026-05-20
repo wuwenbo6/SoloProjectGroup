@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: traceability-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - traceability-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: traceability-auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=auth_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-for-traceability-system-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traceability-network
+
+  material-service:
+    build:
+      context: ./services/material-service
+      dockerfile: Dockerfile
+    container_name: traceability-material-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=material_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-for-traceability-system-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traceability-network
+
+  batch-service:
+    build:
+      context: ./services/batch-service
+      dockerfile: Dockerfile
+    container_name: traceability-batch-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=material_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-for-traceability-system-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traceability-network
+
+  trace-service:
+    build:
+      context: ./services/trace-service
+      dockerfile: Dockerfile
+    container_name: traceability-trace-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=trace_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-for-traceability-system-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traceability-network
+
+  quality-service:
+    build:
+      context: ./services/quality-service
+      dockerfile: Dockerfile
+    container_name: traceability-quality-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=quality_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-for-traceability-system-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traceability-network
+
+  testing-service:
+    build:
+      context: ./services/testing-service
+      dockerfile: Dockerfile
+    container_name: traceability-testing-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=production
+      - PORT=3006
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=quality_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=your-super-secret-jwt-key-for-traceability-system-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traceability-network
+
+volumes:
+  postgres_data:
+
+networks:
+  traceability-network:
+    driver: bridge

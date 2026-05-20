@@ -1,0 +1,4 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE material_db;
+CREATE DATABASE trace_db;
+CREATE DATABASE quality_db;
