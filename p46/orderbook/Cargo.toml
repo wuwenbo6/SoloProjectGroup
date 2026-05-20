@@ -1,0 +1,12 @@
+[package]
+name = "orderbook"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+csv.workspace = true
+chrono.workspace = true
+float-ord.workspace = true
+uuid.workspace = true
+log = "0.4"

@@ -1,0 +1,24 @@
+[workspace]
+members = [
+    "orderbook",
+    "matching",
+    "engine",
+    "api",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+actix-web = "4.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+csv = "1.2"
+chrono = { version = "0.4", features = ["serde"] }
+pyo3 = { version = "0.20", features = ["auto-initialize"] }
+tokio = { version = "1.35", features = ["full"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+rand = "0.8"
+float-ord = "0.3"

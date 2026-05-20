@@ -1,0 +1,10 @@
+[package]
+name = "matching"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+orderbook = { path = "../orderbook" }

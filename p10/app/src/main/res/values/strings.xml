@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">文本朗读器</string>
+    <string name="accessibility_service_description">监听系统文本选择事件，提供朗读功能</string>
+</resources>

@@ -1,0 +1,16 @@
+[package]
+name = "engine"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+pyo3.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+tokio.workspace = true
+crossbeam-channel = "0.5"
+rand = "0.8"
+rand_distr = "0.4"
+orderbook = { path = "../orderbook" }
+matching = { path = "../matching" }

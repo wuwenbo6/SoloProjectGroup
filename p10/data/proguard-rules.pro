@@ -1,0 +1,3 @@
+-keep class * extends androidx.room.RoomDatabase
+-keep class androidx.room.RoomSQLiteQuery
+-dontwarn androidx.room.paging.**

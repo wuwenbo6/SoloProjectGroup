@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: mock-chain
+
+server:
+  port: 8082
+
+orgs:
+  - name: Org1
+    node-url: http://localhost:8082/org1
+    tessera-url: http://localhost:8082/tessera/org1
+    public-key: BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo=
+  - name: Org2
+    node-url: http://localhost:8082/org2
+    tessera-url: http://localhost:8082/tessera/org2
+    public-key: QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc=
+  - name: Org3
+    node-url: http://localhost:8082/org3
+    tessera-url: http://localhost:8082/tessera/org3
+    public-key: 1iTZde/ndBHvzhcl7V68x44Vx7pl8nwx9LqnM/AfJUg=
+
+block:
+  interval: 5000
