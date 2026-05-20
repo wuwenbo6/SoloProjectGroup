@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  seed1:
+    build: .
+    container_name: dht-seed1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/seed1:/app/data
+    command: >
+      ./dht-node start
+      --server :8000
+      --data /app/data
+    networks:
+      dht-network:
+        ipv4_address: 172.28.0.2
+
+  seed2:
+    build: .
+    container_name: dht-seed2
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data/seed2:/app/data
+    command: >
+      ./dht-node start
+      --server :8001
+      --data /app/data
+      --bootstrap 172.28.0.2:8000
+    networks:
+      dht-network:
+        ipv4_address: 172.28.0.3
+    depends_on:
+      - seed1
+
+  seed3:
+    build: .
+    container_name: dht-seed3
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./data/seed3:/app/data
+    command: >
+      ./dht-node start
+      --server :8002
+      --data /app/data
+      --bootstrap 172.28.0.2:8000
+    networks:
+      dht-network:
+        ipv4_address: 172.28.0.4
+    depends_on:
+      - seed1
+
+networks:
+  dht-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

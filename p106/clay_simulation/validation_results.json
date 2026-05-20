@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "stress_validation": {
+      "mean_rmse": 4082.613671691054,
+      "mean_relative_error": 0.13700045878157854,
+      "mean_r_squared": 0.0432655376382639,
+      "max_error": 7000.016481654897,
+      "pass_rate": 1.0,
+      "total_tests": 1,
+      "passed_tests": 1
+    },
+    "displacement_validation": {
+      "mean_rmse": 0.0007593856214110543,
+      "mean_relative_error": 0.4142103163581942,
+      "mean_r_squared": 0.21259924343780176,
+      "max_error": 0.0012000000316269124,
+      "pass_rate": 0.0,
+      "total_tests": 1,
+      "passed_tests": 0
+    },
+    "overall_pass_rate": 0.5,
+    "total_comparisons": 2
+  },
+  "comparisons": [
+    {
+      "test_id": "STRESS_TEST_001",
+      "metric_name": "stress",
+      "rmse": 4082.613671691054,
+      "mae": 3392.0231396079007,
+      "max_error": 7000.016481654897,
+      "r_squared": 0.0432655376382639,
+      "correlation": -0.20800369621298537,
+      "bias": 630.5501912154257,
+      "relative_error": 0.13700045878157854,
+      "simulation_mean": 30430.550191215425,
+      "test_mean": 29800.0,
+      "passed_threshold": true
+    },
+    {
+      "test_id": "DISP_TEST_001",
+      "metric_name": "displacement",
+      "rmse": 0.0007593856214110543,
+      "mae": 0.0006333329101680357,
+      "max_error": 0.0012000000316269124,
+      "r_squared": 0.21259924343780176,
+      "correlation": -0.4610848549213059,
+      "bias": 0.00016666711091657257,
+      "relative_error": 0.4142103163581942,
+      "simulation_mean": 0.002000000444249906,
+      "test_mean": 0.0018333333333333333,
+      "passed_threshold": false
+    }
+  ],
+  "tolerance_threshold": 0.15
+}

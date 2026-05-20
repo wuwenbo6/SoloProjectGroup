@@ -1,0 +1,19 @@
+{
+  "name": "process_param_opt",
+  "success": true,
+  "best_score": 38.6837860031099,
+  "optimized_params": {
+    "firing_temperature": 1200.0,
+    "firing_time": 240.0,
+    "grinding_time": 180.0
+  },
+  "original_params": {
+    "firing_temperature": 900.0,
+    "firing_time": 150.0,
+    "grinding_time": 90.0
+  },
+  "optimized_ratios": {},
+  "original_ratios": {},
+  "method": "differential_evolution",
+  "saved_at": "2026-05-19T10:43:11.216185"
+}

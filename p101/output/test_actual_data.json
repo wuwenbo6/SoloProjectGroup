@@ -1,0 +1,36 @@
+[
+  {
+    "id": "TEST001",
+    "material_names": [
+      "mulberry",
+      "bamboo",
+      "cotton"
+    ],
+    "ratios": [
+      0.4,
+      0.35,
+      0.25
+    ],
+    "soak_time": 24.0,
+    "actual_strength": 95.0,
+    "actual_porosity": 0.42,
+    "actual_absorption": 0.68
+  },
+  {
+    "id": "TEST002",
+    "material_names": [
+      "mulberry",
+      "hemp",
+      "cotton"
+    ],
+    "ratios": [
+      0.4,
+      0.3,
+      0.3
+    ],
+    "soak_time": 26.0,
+    "actual_strength": 98.5,
+    "actual_porosity": 0.4,
+    "actual_absorption": 0.65
+  }
+]

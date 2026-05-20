@@ -1,0 +1,59 @@
+# Ingress配置
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: analytics-ingress
+  namespace: analytics-platform
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    # 限流配置
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-rpm: "5000"
+    # 启用CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+spec:
+  tls:
+  - hosts:
+    - analytics.example.com
+    secretName: analytics-tls
+  rules:
+  - host: analytics.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-service
+            port:
+              number: 8000
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: app-service
+            port:
+              number: 8000
+---
+# TLS证书Secret (生产环境请使用cert-manager)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: analytics-tls
+  namespace: analytics-platform
+type: kubernetes.io/tls
+data:
+  # 注意: 生产环境请替换为真实的TLS证书
+  # 生成自签名证书:
+  # openssl req -x509 -newkey rsa:4096 -keyout tls.key -out tls.crt -days 365 -nodes
+  # base64 -w 0 tls.crt
+  # base64 -w 0 tls.key
+  tls.crt: ""  # 替换为base64编码的证书
+  tls.key: ""  # 替换为base64编码的私钥

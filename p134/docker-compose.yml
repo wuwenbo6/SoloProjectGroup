@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - arbitrage-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: crypto_arbitrage
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - arbitrage-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=crypto_arbitrage
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - ARBITRAGE_THRESHOLD=0.005
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - arbitrage-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - arbitrage-network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
+
+networks:
+  arbitrage-network:
+    driver: bridge

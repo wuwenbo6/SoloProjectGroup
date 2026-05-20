@@ -1,0 +1,167 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: l7networkpolicies.netpol.ebpf.cni
+spec:
+  group: netpol.ebpf.cni
+  names:
+    kind: L7NetworkPolicy
+    listKind: L7NetworkPolicyList
+    plural: l7networkpolicies
+    singular: l7networkpolicy
+    shortNames:
+      - l7np
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                podSelector:
+                  type: object
+                  properties:
+                    matchLabels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                policyTypes:
+                  type: array
+                  items:
+                    type: string
+                    enum: ["Ingress", "Egress"]
+                ingress:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ports:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            protocol:
+                              type: string
+                              enum: ["TCP", "UDP"]
+                            port:
+                              type: integer
+                      from:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            ipBlock:
+                              type: object
+                              properties:
+                                cidr:
+                                  type: string
+                                except:
+                                  type: array
+                                  items:
+                                    type: string
+                            namespaceSelector:
+                              type: object
+                              properties:
+                                matchLabels:
+                                  type: object
+                                  additionalProperties:
+                                    type: string
+                            podSelector:
+                              type: object
+                              properties:
+                                matchLabels:
+                                  type: object
+                                  additionalProperties:
+                                    type: string
+                      http:
+                        type: object
+                        properties:
+                          paths:
+                            type: array
+                            items:
+                              type: string
+                          methods:
+                            type: array
+                            items:
+                              type: string
+                      grpc:
+                        type: object
+                        properties:
+                          services:
+                            type: array
+                            items:
+                              type: string
+                          methods:
+                            type: array
+                            items:
+                              type: string
+                egress:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ports:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            protocol:
+                              type: string
+                              enum: ["TCP", "UDP"]
+                            port:
+                              type: integer
+                      to:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            ipBlock:
+                              type: object
+                              properties:
+                                cidr:
+                                  type: string
+                                except:
+                                  type: array
+                                  items:
+                                    type: string
+                            namespaceSelector:
+                              type: object
+                              properties:
+                                matchLabels:
+                                  type: object
+                                  additionalProperties:
+                                    type: string
+                            podSelector:
+                              type: object
+                              properties:
+                                matchLabels:
+                                  type: object
+                                  additionalProperties:
+                                    type: string
+                      http:
+                        type: object
+                        properties:
+                          paths:
+                            type: array
+                            items:
+                              type: string
+                          methods:
+                            type: array
+                            items:
+                              type: string
+                      grpc:
+                        type: object
+                        properties:
+                          services:
+                            type: array
+                            items:
+                              type: string
+                          methods:
+                            type: array
+                            items:
+                              type: string

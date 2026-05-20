@@ -1,0 +1,18 @@
+{
+  "name": "lantern-skeleton-simulator",
+  "version": "1.0.0",
+  "description": "花灯骨架编辑与物理模拟系统",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "keywords": ["lantern", "physics", "simulation"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

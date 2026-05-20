@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alignment Results - Gene Sequence Alignment System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>🧬 Gene Sequence Alignment System</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/upload">Upload Sequences</a>
+            <a href="/results">Alignment Results</a>
+            <a href="/docs" target="_blank">API Docs</a>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>🔍 Check Alignment Job Status</h2>
+            <div class="form-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Job ID</label>
+                    <input type="text" id="job-id" placeholder="Enter Job ID">
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button class="btn btn-primary" onclick="checkJob()">Check Job</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="job-result-section" style="display: none;">
+            <h2>📊 Alignment Results</h2>
+            <div id="job-info" class="result-box"></div>
+            <div id="alignment-results"></div>
+        </section>
+
+        <section>
+            <h2>💾 Sequence Database</h2>
+            <button class="btn btn-outline" onclick="loadSequences(0)">Refresh Sequences</button>
+            <div id="pagination" class="pagination-container"></div>
+            <div id="sequences-list" class="sequences-container"></div>
+            <div id="pagination-bottom" class="pagination-container"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Gene Sequence Alignment System. Powered by FastAPI, BLAST & MongoDB</p>
+    </footer>
+
+    <script src="/static/js/results.js"></script>
+</body>
+</html>

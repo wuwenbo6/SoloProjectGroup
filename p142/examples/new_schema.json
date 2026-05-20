@@ -1,0 +1,81 @@
+[
+  {
+    "name": "employees",
+    "columns": [
+      {
+        "name": "emp_id",
+        "data_type": "SERIAL",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "first_name",
+        "data_type": "VARCHAR(50)",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "last_name",
+        "data_type": "VARCHAR(50)",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "birth_date",
+        "data_type": "TIMESTAMP",
+        "nullable": true,
+        "default": null
+      },
+      {
+        "name": "hire_date",
+        "data_type": "TIMESTAMP",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "salary",
+        "data_type": "NUMERIC(10,2)",
+        "nullable": true,
+        "default": null
+      },
+      {
+        "name": "email",
+        "data_type": "VARCHAR(150)",
+        "nullable": true,
+        "default": null
+      }
+    ],
+    "primary_key": ["emp_id"],
+    "indexes": [
+      {
+        "name": "idx_emp_email",
+        "columns": ["email"],
+        "unique": true
+      },
+      {
+        "name": "idx_emp_hire_date",
+        "columns": ["hire_date"],
+        "unique": false
+      }
+    ]
+  },
+  {
+    "name": "departments",
+    "columns": [
+      {
+        "name": "dept_id",
+        "data_type": "SERIAL",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "dept_name",
+        "data_type": "VARCHAR(100)",
+        "nullable": false,
+        "default": null
+      }
+    ],
+    "primary_key": ["dept_id"],
+    "indexes": []
+  }
+]

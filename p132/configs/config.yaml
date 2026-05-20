@@ -1,0 +1,89 @@
+mqtt:
+  broker: localhost
+  port: 1883
+  clientId: modbus-gateway
+  username: admin
+  password: public
+  topic: modbus/data
+  qos: 1
+
+edge:
+  enableMovingAvg: true
+  enableThresholdAlarm: true
+  alarmThresholds:
+    - name: temperature
+      minValue: -10
+      maxValue: 80
+    - name: humidity
+      minValue: 0
+      maxValue: 100
+
+storage:
+  enabled: true
+  dbPath: modbus_data.db
+  maxRetries: 10
+  retryBatchSize: 50
+  cleanupDays: 7
+
+pool:
+  workerCount: 3
+  queueSize: 100
+
+metrics:
+  enabled: true
+  path: /metrics
+
+devices:
+  - deviceId: device-001
+    modbus:
+      host: localhost
+      port: 502
+      slaveId: 1
+      pollInterval: 1000
+      timeout: 5000
+    registers:
+      - name: temperature
+        address: 0
+        type: holding
+        dataType: int16
+        scaleFactor: 0.1
+        offset: 0
+        unit: "°C"
+        changeThreshold: 0.5
+        movingAvgWindow: 5
+      - name: humidity
+        address: 1
+        type: holding
+        dataType: uint16
+        scaleFactor: 0.1
+        offset: 0
+        unit: "%"
+        changeThreshold: 1.0
+        movingAvgWindow: 5
+
+  - deviceId: device-002
+    modbus:
+      host: localhost
+      port: 503
+      slaveId: 1
+      pollInterval: 2000
+      timeout: 5000
+    registers:
+      - name: pressure
+        address: 2
+        type: holding
+        dataType: int32
+        scaleFactor: 0.01
+        offset: 0
+        unit: "hPa"
+        changeThreshold: 0.1
+        movingAvgWindow: 10
+      - name: voltage
+        address: 4
+        type: holding
+        dataType: uint16
+        scaleFactor: 0.01
+        offset: 0
+        unit: "V"
+        changeThreshold: 0.5
+        movingAvgWindow: 5

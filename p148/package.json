@@ -1,0 +1,39 @@
+{
+  "name": "sdr-radio-electron",
+  "version": "1.0.0",
+  "description": "SDR Radio Receiver with RTL-SDR",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder"
+  },
+  "keywords": ["sdr", "rtlsdr", "radio", "electron"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^7.1.0",
+    "wav": "^1.0.2"
+  },
+  "build": {
+    "appId": "com.sdr.radio",
+    "productName": "SDR Radio",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "deb"
+    }
+  }
+}

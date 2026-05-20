@@ -1,0 +1,12 @@
+{
+  "name": "webrtc-remote-control",
+  "version": "1.0.0",
+  "description": "WebRTC远程控制应用",
+  "scripts": {
+    "start:server": "cd server && npm start",
+    "start:agent": "cd agent && npm start",
+    "start:client": "cd client && npm start",
+    "install:all": "npm install && cd server && npm install && cd ../agent && npm install && cd ../client && npm install"
+  },
+  "keywords": ["webrtc", "remote-control", "socket.io"]
+}

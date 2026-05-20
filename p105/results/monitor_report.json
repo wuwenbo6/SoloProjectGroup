@@ -1,0 +1,159 @@
+{
+  "summary": {
+    "total_alerts": 14,
+    "critical_count": 0,
+    "warning_count": 14,
+    "info_count": 0
+  },
+  "alerts_by_type": {
+    "moisture_gradient": 5,
+    "humidity_abnormal": 5,
+    "drying_rate_slow": 4
+  },
+  "recommendations": [
+    "- 含水率梯度较大，建议优化温湿度控制策略"
+  ],
+  "alerts": [
+    {
+      "timestamp_hours": 0.0,
+      "alert_level": "warning",
+      "alert_type": "moisture_gradient",
+      "message": "含水率梯度过大: 160.0000",
+      "value": 160.00000000000182,
+      "threshold": 0.05,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 0.0,
+      "alert_level": "warning",
+      "alert_type": "humidity_abnormal",
+      "message": "环境湿度异常: 25.0%",
+      "value": 25.0,
+      "threshold": 30.0,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 1.0,
+      "alert_level": "warning",
+      "alert_type": "moisture_gradient",
+      "message": "含水率梯度过大: 160.0000",
+      "value": 160.00000000000182,
+      "threshold": 0.05,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 1.0,
+      "alert_level": "warning",
+      "alert_type": "drying_rate_slow",
+      "message": "干燥速率过慢: 0.054381 1/h",
+      "value": 0.05438077407660541,
+      "threshold": 0.0001,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 1.0,
+      "alert_level": "warning",
+      "alert_type": "humidity_abnormal",
+      "message": "环境湿度异常: 25.0%",
+      "value": 25.0,
+      "threshold": 30.0,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 2.0,
+      "alert_level": "warning",
+      "alert_type": "moisture_gradient",
+      "message": "含水率梯度过大: 160.0000",
+      "value": 160.00000000000136,
+      "threshold": 0.05,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 2.0,
+      "alert_level": "warning",
+      "alert_type": "drying_rate_slow",
+      "message": "干燥速率过慢: 0.084273 1/h",
+      "value": 0.08427281353952237,
+      "threshold": 0.0001,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 2.0,
+      "alert_level": "warning",
+      "alert_type": "humidity_abnormal",
+      "message": "环境湿度异常: 25.0%",
+      "value": 25.0,
+      "threshold": 30.0,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 3.0,
+      "alert_level": "warning",
+      "alert_type": "moisture_gradient",
+      "message": "含水率梯度过大: 160.0000",
+      "value": 160.00000000000136,
+      "threshold": 0.05,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 3.0,
+      "alert_level": "warning",
+      "alert_type": "drying_rate_slow",
+      "message": "干燥速率过慢: 0.106808 1/h",
+      "value": 0.10680773458257994,
+      "threshold": 0.0001,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 3.0,
+      "alert_level": "warning",
+      "alert_type": "humidity_abnormal",
+      "message": "环境湿度异常: 25.0%",
+      "value": 25.0,
+      "threshold": 30.0,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 4.0,
+      "alert_level": "warning",
+      "alert_type": "moisture_gradient",
+      "message": "含水率梯度过大: 160.0000",
+      "value": 160.00000000000136,
+      "threshold": 0.05,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 4.0,
+      "alert_level": "warning",
+      "alert_type": "drying_rate_slow",
+      "message": "干燥速率过慢: 0.123414 1/h",
+      "value": 0.12341370369235086,
+      "threshold": 0.0001,
+      "position_mm": null,
+      "layer_id": null
+    },
+    {
+      "timestamp_hours": 4.0,
+      "alert_level": "warning",
+      "alert_type": "humidity_abnormal",
+      "message": "环境湿度异常: 25.0%",
+      "value": 25.0,
+      "threshold": 30.0,
+      "position_mm": null,
+      "layer_id": null
+    }
+  ],
+  "generated_time": "2026-05-19T10:34:49.119277"
+}

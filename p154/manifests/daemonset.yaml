@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: netpol-ebpf
+  namespace: kube-system
+  labels:
+    k8s-app: netpol-ebpf
+spec:
+  selector:
+    matchLabels:
+      k8s-app: netpol-ebpf
+  template:
+    metadata:
+      labels:
+        k8s-app: netpol-ebpf
+    spec:
+      hostNetwork: true
+      serviceAccountName: netpol-ebpf
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: daemon
+        image: netpol-ebpf:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - SYS_ADMIN
+        command: ["/usr/bin/daemon"]
+        args:
+          - --iface=eth0
+        volumeMounts:
+        - name: bpf-maps
+          mountPath: /sys/fs/bpf
+        - name: host-proc
+          mountPath: /host/proc
+          readOnly: true
+      volumes:
+      - name: bpf-maps
+        hostPath:
+          path: /sys/fs/bpf
+          type: Directory
+      - name: host-proc
+        hostPath:
+          path: /proc
+          type: Directory

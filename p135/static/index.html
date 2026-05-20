@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频指纹识别系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #f0f0f0;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #e0e0e0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #667eea;
+            background: #f8f7ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .recording-controls {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .record-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            background: #e74c3c;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .record-btn.recording {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .record-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .recording-status {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .recording-time {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .waveform {
+            height: 60px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .waveform canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-confidence {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .result-meta {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .result-meta span {
+            margin-right: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .file-info {
+            background: #f8f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .warning-message.show {
+            display: block;
+        }
+
+        .fallback-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .fallback-btn {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            color: #666;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .fallback-btn:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .recording-status.error {
+            color: #dc3545;
+        }
+
+        .recording-status.warning {
+            color: #ffc107;
+        }
+
+        .microphone-test-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .microphone-test-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .song-cover {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 20px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .song-cover img {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .result-content {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .song-details {
+            flex: 1;
+        }
+
+        .lyrics-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #666;
+            max-height: 100px;
+            overflow-y: auto;
+            font-style: italic;
+        }
+
+        .lyrics-full {
+            max-height: 300px;
+        }
+
+        .streaming-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .streaming-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .streaming-indicator.active {
+            background: #28a745;
+            animation: pulse 1s infinite;
+        }
+
+        .streaming-indicator.error {
+            background: #dc3545;
+        }
+
+        .streaming-info {
+            text-align: center;
+            color: #666;
+            margin: 15px 0;
+        }
+
+        .match-history {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .match-history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-history-item:last-child {
+            border-bottom: none;
+        }
+
+        .match-time {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .current-match {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border: 2px solid #667eea;
+        }
+
+        .match-empty {
+            color: #ccc;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 音频指纹识别系统</h1>
+            <p>基于 Landmark 算法的音频识别服务</p>
+        </div>
+
+        <div class="card">
+            <h2>上传音频</h2>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('file')">文件上传</button>
+                <button class="tab-btn" onclick="switchTab('record')">录音识别</button>
+                <button class="tab-btn" onclick="switchTab('streaming')">实时流式匹配</button>
+            </div>
+
+            <div id="file-tab" class="tab-content active">
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">点击或拖拽文件到此处上传</div>
+                    <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">支持 WAV, MP3, FLAC, OGG, M4A 格式</p>
+                </div>
+                <input type="file" class="file-input" id="fileInput" accept=".wav,.mp3,.flac,.ogg,.m4a">
+
+                <div class="file-info" id="fileInfo">
+                    <p class="file-name" id="fileName"></p>
+                    <p id="fileSize"></p>
+                </div>
+
+                <div class="form-group">
+                    <label>歌曲标题（保存到数据库时使用）</label>
+                    <input type="text" id="songTitle" placeholder="可选">
+                </div>
+
+                <div class="form-group">
+                    <label>艺术家</label>
+                    <input type="text" id="songArtist" placeholder="可选">
+                </div>
+
+                <div class="form-group">
+                    <label>专辑</label>
+                    <input type="text" id="songAlbum" placeholder="可选">
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="saveToDb">
+                    <label for="saveToDb">保存到数据库（用于后续匹配）</label>
+                </div>
+            </div>
+
+            <div id="record-tab" class="tab-content">
+                <div class="recording-controls">
+                    <button class="record-btn" id="recordBtn" onclick="toggleRecording()">🎤</button>
+                    <div class="recording-status" id="recordingStatus">点击开始录音</div>
+                    <div class="recording-time" id="recordingTime">00:00</div>
+
+                    <div class="waveform" id="waveform">
+                        <canvas id="waveformCanvas"></canvas>
+                    </div>
+
+                    <div class="error-message" id="micError">
+                        <strong>无法访问麦克风</strong>
+                        <p style="margin-top: 8px;">请检查浏览器权限设置，确保允许访问麦克风。</p>
+                        <div class="fallback-buttons">
+                            <button class="fallback-btn" onclick="testMicrophone()">🔄 重试访问</button>
+                            <button class="fallback-btn" onclick="switchTab('file')">📁 使用文件上传</button>
+                        </div>
+                    </div>
+
+                    <div class="warning-message" id="micWarning">
+                        <strong>麦克风权限提示</strong>
+                        <p style="margin-top: 8px;">请在浏览器弹出的权限请求中点击"允许"。</p>
+                        <button class="microphone-test-btn" onclick="checkMicrophoneSupport()">检查麦克风支持</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="streaming-tab" class="tab-content">
+                <div class="streaming-status">
+                    <div class="streaming-indicator" id="streamingIndicator"></div>
+                    <span id="streamingStatusText">未连接</span>
+                </div>
+
+                <div class="recording-controls">
+                    <button class="record-btn" id="streamingBtn" onclick="toggleStreaming()">🎤</button>
+                    <div class="recording-status" id="streamingRecordingStatus">点击开始实时识别</div>
+                    <div class="recording-time" id="streamingTime">00:00</div>
+
+                    <div class="waveform" id="streamingWaveform">
+                        <canvas id="streamingWaveformCanvas"></canvas>
+                    </div>
+
+                    <div class="streaming-info">
+                        <p>缓冲时长: <span id="bufferDuration">0</span>秒</p>
+                        <p>已处理: <span id="processedTime">0</span>秒</p>
+                    </div>
+
+                    <div id="currentMatchDisplay" style="display: none;">
+                        <h3 style="color: #333; margin-bottom: 15px;">当前识别</h3>
+                        <div id="currentMatchResult"></div>
+                    </div>
+
+                    <div class="match-history" id="matchHistory">
+                        <h3 style="color: #333; margin-bottom: 15px;">识别历史</h3>
+                        <div id="matchHistoryList" class="match-empty">
+                            暂无识别结果
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="submit-btn" id="submitBtn" onclick="identifyAudio()" disabled>开始识别</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">正在分析音频指纹...</div>
+            </div>
+        </div>
+
+        <div class="card results" id="resultsCard">
+            <h2>识别结果</h2>
+            <div id="fingerprintInfo"></div>
+            <div id="resultsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordingStartTime = null;
+        let recordingTimer = null;
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let animationId = null;
+        let ws = null;
+        let isStreaming = false;
+        let streamingMediaRecorder = null;
+        let streamingStartTime = null;
+        let streamingTimer = null;
+        let streamingContext = null;
+        let streamingAnalyser = null;
+        let streamingAnimationId = null;
+        let matchHistory = [];
+        let lastMatchedSongId = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tab === 'file') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('file-tab').classList.add('active');
+            } else if (tab === 'record') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('record-tab').classList.add('active');
+            } else if (tab === 'streaming') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('streaming-tab').classList.add('active');
+            }
+
+            updateSubmitButton();
+        }
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = `大小: ${formatFileSize(file.size)}`;
+            document.getElementById('fileInfo').classList.add('show');
+            updateSubmitButton();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function checkMicrophoneSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                document.getElementById('micWarning').classList.add('show');
+                document.getElementById('recordingStatus').textContent = '浏览器不支持录音';
+                document.getElementById('recordingStatus').classList.add('warning');
+                document.getElementById('recordBtn').disabled = true;
+                return false;
+            }
+            return true;
+        }
+
+        async function testMicrophone() {
+            document.getElementById('micError').classList.remove('show');
+            document.getElementById('micWarning').classList.remove('show');
+            document.getElementById('recordingStatus').classList.remove('error', 'warning');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+
+                document.getElementById('recordingStatus').textContent = '麦克风正常，请点击开始录音';
+                document.getElementById('recordBtn').disabled = false;
+                return true;
+            } catch (err) {
+                console.error('Microphone error:', err);
+                handleMicrophoneError(err);
+                return false;
+            }
+        }
+
+        function handleMicrophoneError(err) {
+            const errorDiv = document.getElementById('micError');
+            const statusElement = document.getElementById('recordingStatus');
+
+            document.getElementById('micWarning').classList.remove('show');
+            errorDiv.classList.add('show');
+            statusElement.classList.add('error');
+
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                statusElement.textContent = '麦克风权限被拒绝';
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                statusElement.textContent = '未找到麦克风设备';
+            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                statusElement.textContent = '麦克风被其他应用占用';
+            } else if (err.name === 'OverconstrainedError') {
+                statusElement.textContent = '麦克风不满足要求';
+            } else if (err.name === 'SecurityError') {
+                statusElement.textContent = '安全策略限制，请使用HTTPS';
+            } else {
+                statusElement.textContent = '无法访问麦克风';
+            }
+
+            document.getElementById('recordBtn').disabled = true;
+        }
+
+        async function toggleRecording() {
+            if (!isRecording) {
+                if (!checkMicrophoneSupport()) {
+                    return;
+                }
+
+                document.getElementById('micError').classList.remove('show');
+                document.getElementById('micWarning').classList.add('show');
+                document.getElementById('recordingStatus').classList.remove('error', 'warning');
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    document.getElementById('micWarning').classList.remove('show');
+
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    analyser.fftSize = 256;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        audioChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        selectedFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
+                        updateSubmitButton();
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordingStartTime = Date.now();
+                    document.getElementById('recordBtn').classList.add('recording');
+                    document.getElementById('recordingStatus').textContent = '正在录音...';
+
+                    recordingTimer = setInterval(updateRecordingTime, 1000);
+                    drawWaveform();
+                } catch (err) {
+                    document.getElementById('micWarning').classList.remove('show');
+                    handleMicrophoneError(err);
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                clearInterval(recordingTimer);
+                cancelAnimationFrame(animationId);
+                document.getElementById('recordBtn').classList.remove('recording');
+                document.getElementById('recordingStatus').textContent = '录音完成';
+            }
+        }
+
+        function updateRecordingTime() {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('recordingTime').textContent = `${minutes}:${seconds}`;
+        }
+
+        function drawWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            function draw() {
+                if (!isRecording) return;
+
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const barWidth = (canvas.width / dataArray.length) * 2.5;
+                let x = 0;
+
+                for (let i = 0; i < dataArray.length; i++) {
+                    const barHeight = (dataArray[i] / 255) * canvas.height;
+
+                    const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                    x += barWidth + 1;
+                }
+
+                animationId = requestAnimationFrame(draw);
+            }
+
+            draw();
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = !selectedFile;
+        }
+
+        async function identifyAudio() {
+            if (!selectedFile) return;
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('resultsCard').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('title', document.getElementById('songTitle').value || '');
+            formData.append('artist', document.getElementById('songArtist').value || '');
+            formData.append('album', document.getElementById('songAlbum').value || '');
+            formData.append('save_to_db', document.getElementById('saveToDb').checked);
+
+            try {
+                const response = await fetch('/api/identify', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('submitBtn').disabled = false;
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    alert('识别失败: ' + result.detail);
+                }
+            } catch (err) {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('submitBtn').disabled = false;
+                alert('请求失败，请检查网络连接。');
+                console.error(err);
+            }
+        }
+
+        function createMatchResultHTML(match, includeLyrics = true) {
+            const confidence = (match.confidence * 100).toFixed(1);
+            let confidenceClass = 'confidence-low';
+            if (match.confidence >= 0.7) {
+                confidenceClass = 'confidence-high';
+            } else if (match.confidence >= 0.4) {
+                confidenceClass = 'confidence-medium';
+            }
+
+            let coverHTML = '';
+            if (match.cover_image) {
+                coverHTML = `<img src="${match.cover_image}" alt="封面">`;
+            } else if (match.cover_url) {
+                coverHTML = `<img src="${match.cover_url}" alt="封面">`;
+            } else {
+                coverHTML = '🎵';
+            }
+
+            let lyricsHTML = '';
+            if (match.lyrics && includeLyrics) {
+                lyricsHTML = `<div class="lyrics-preview">${match.lyrics.substring(0, 200)}${match.lyrics.length > 200 ? '...' : ''}</div>`;
+            }
+
+            return `
+                <div class="result-item">
+                    <div class="result-content">
+                        <div class="song-cover">${coverHTML}</div>
+                        <div class="song-details">
+                            <div class="result-header">
+                                <div class="result-title">${match.title}</div>
+                                <div class="result-confidence ${confidenceClass}">${confidence}%</div>
+                            </div>
+                            <div class="result-meta">
+                                ${match.artist ? `<span>🎤 ${match.artist}</span>` : ''}
+                                ${match.album ? `<span>💿 ${match.album}</span>` : ''}
+                                <span>匹配数: ${match.match_count}</span>
+                                ${match.max_offset_alignment ? `<span>最佳对齐: ${match.max_offset_alignment}</span>` : ''}
+                            </div>
+                            ${lyricsHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayResults(result) {
+            document.getElementById('resultsCard').classList.add('show');
+
+            const fpInfo = document.getElementById('fingerprintInfo');
+            fpInfo.innerHTML = `
+                <p style="color: #666; margin-bottom: 20px;">
+                    指纹信息: ${result.fingerprint_info.num_peaks} 个峰值点, ${result.fingerprint_info.num_hashes} 个指纹哈希
+                </p>
+            `;
+
+            const resultsList = document.getElementById('resultsList');
+
+            if (!result.matches || result.matches.length === 0) {
+                resultsList.innerHTML = '<div class="no-results">未找到匹配的歌曲</div>';
+                return;
+            }
+
+            resultsList.innerHTML = result.matches.map(match => createMatchResultHTML(match)).join('');
+        }
+
+        async function toggleStreaming() {
+            if (!isStreaming) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    ws = new WebSocket(`${wsProtocol}//${window.location.host}/api/streaming/ws/match`);
+
+                    ws.onopen = function() {
+                        document.getElementById('streamingIndicator').classList.add('active');
+                        document.getElementById('streamingIndicator').classList.remove('error');
+                        document.getElementById('streamingStatusText').textContent = '已连接';
+                    };
+
+                    ws.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'result') {
+                            handleStreamingResult(data.data);
+                        }
+                    };
+
+                    ws.onerror = function(error) {
+                        console.error('WebSocket error:', error);
+                        document.getElementById('streamingIndicator').classList.add('error');
+                        document.getElementById('streamingIndicator').classList.remove('active');
+                        document.getElementById('streamingStatusText').textContent = '连接错误';
+                    };
+
+                    ws.onclose = function() {
+                        document.getElementById('streamingIndicator').classList.remove('active', 'error');
+                        document.getElementById('streamingStatusText').textContent = '未连接';
+                    };
+
+                    streamingMediaRecorder = new MediaRecorder(stream);
+                    streamingMediaRecorder.ondataavailable = async function(e) {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            const reader = new FileReader();
+                            reader.onload = function() {
+                                const base64Audio = reader.result.split(',')[1];
+                                ws.send(JSON.stringify({
+                                    type: 'audio_chunk',
+                                    audio_data: base64Audio,
+                                    duration: 0.5
+                                }));
+                            };
+                            reader.readAsDataURL(e.data);
+                        }
+                    };
+
+                    streamingContext = new (window.AudioContext || window.webkitAudioContext)();
+                    streamingAnalyser = streamingContext.createAnalyser();
+                    const source = streamingContext.createMediaStreamSource(stream);
+                    source.connect(streamingAnalyser);
+                    streamingAnalyser.fftSize = 256;
+                    const streamingDataArray = new Uint8Array(streamingAnalyser.frequencyBinCount);
+
+                    function drawStreamingWaveform() {
+                        if (!isStreaming) return;
+
+                        const canvas = document.getElementById('streamingWaveformCanvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = canvas.offsetWidth;
+                        canvas.height = canvas.offsetHeight;
+
+                        streamingAnalyser.getByteFrequencyData(streamingDataArray);
+
+                        ctx.fillStyle = '#f0f0f0';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                        const barWidth = (canvas.width / streamingDataArray.length) * 2.5;
+                        let x = 0;
+
+                        for (let i = 0; i < streamingDataArray.length; i++) {
+                            const barHeight = (streamingDataArray[i] / 255) * canvas.height;
+                            const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+                            gradient.addColorStop(0, '#667eea');
+                            gradient.addColorStop(1, '#764ba2');
+                            ctx.fillStyle = gradient;
+                            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                            x += barWidth + 1;
+                        }
+
+                        streamingAnimationId = requestAnimationFrame(drawStreamingWaveform);
+                    }
+
+                    streamingMediaRecorder.start(500);
+                    isStreaming = true;
+                    streamingStartTime = Date.now();
+                    document.getElementById('streamingBtn').classList.add('recording');
+                    document.getElementById('streamingRecordingStatus').textContent = '正在实时识别...';
+
+                    streamingTimer = setInterval(function() {
+                        const elapsed = Math.floor((Date.now() - streamingStartTime) / 1000);
+                        const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                        const seconds = (elapsed % 60).toString().padStart(2, '0');
+                        document.getElementById('streamingTime').textContent = `${minutes}:${seconds}`;
+                    }, 1000);
+
+                    drawStreamingWaveform();
+
+                } catch (err) {
+                    alert('无法访问麦克风，请检查权限设置。');
+                    console.error(err);
+                }
+            } else {
+                if (streamingMediaRecorder) {
+                    streamingMediaRecorder.stop();
+                    streamingMediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
+                if (ws) {
+                    ws.close();
+                }
+                isStreaming = false;
+                clearInterval(streamingTimer);
+                cancelAnimationFrame(streamingAnimationId);
+                document.getElementById('streamingBtn').classList.remove('recording');
+                document.getElementById('streamingRecordingStatus').textContent = '点击开始实时识别';
+            }
+        }
+
+        function handleStreamingResult(data) {
+            document.getElementById('bufferDuration').textContent = data.buffer_duration.toFixed(1);
+            document.getElementById('processedTime').textContent = data.stream_time.toFixed(1);
+
+            if (data.match && data.matched) {
+                const match = data.match;
+                const songId = match.song_id;
+
+                if (songId !== lastMatchedSongId) {
+                    lastMatchedSongId = songId;
+                    addMatchToHistory(match);
+                }
+
+                showCurrentMatch(match);
+            }
+        }
+
+        function showCurrentMatch(match) {
+            const display = document.getElementById('currentMatchDisplay');
+            display.style.display = 'block';
+            document.getElementById('currentMatchResult').innerHTML = createMatchResultHTML(match, false);
+        }
+
+        function addMatchToHistory(match) {
+            const historyList = document.getElementById('matchHistoryList');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+
+            const historyItem = {
+                match: match,
+                time: timeStr
+            };
+            matchHistory.unshift(historyItem);
+
+            if (matchHistory.length > 10) {
+                matchHistory.pop();
+            }
+
+            if (matchHistory.length === 1) {
+                historyList.innerHTML = '';
+            }
+
+            const confidence = (match.confidence * 100).toFixed(0);
+            const itemHTML = `
+                <div class="match-history-item">
+                    <div>
+                        <strong>${match.title}</strong>
+                        ${match.artist ? `<br><span style="color: #999;">${match.artist}</span>` : ''}
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: #667eea; font-weight: 600;">${confidence}%</div>
+                        <div class="match-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+            historyList.insertAdjacentHTML('afterbegin', itemHTML);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkMicrophoneSupport();
+
+            document.getElementById('record-tab').addEventListener('click', function() {
+                if (document.getElementById('recordBtn').disabled) {
+                    document.getElementById('micWarning').classList.add('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

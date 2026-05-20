@@ -1,0 +1,8 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+spacy==3.7.2
+neo4j==5.16.0
+openai==1.10.0
+pydantic==2.5.3
+python-dotenv==1.0.0
+corsmiddleware==0.1.0

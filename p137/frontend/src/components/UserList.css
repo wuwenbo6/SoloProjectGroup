@@ -1,0 +1,136 @@
+.user-list {
+  width: 220px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-list-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.user-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.voice-controls {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  gap: 8px;
+}
+
+.voice-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.voice-btn:hover {
+  border-color: #667eea;
+}
+
+.voice-btn.enabled {
+  background: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.mute-btn {
+  width: 44px;
+  padding: 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.mute-btn:hover {
+  border-color: #ff9800;
+}
+
+.mute-btn.muted {
+  background: #ffebee;
+  border-color: #f44336;
+}
+
+.user-list-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-item:hover {
+  background-color: #f0f0f0;
+}
+
+.user-item.current-user {
+  background-color: #e8f5e9;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.user-badge {
+  padding: 2px 6px;
+  background: #667eea;
+  color: white;
+  font-size: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.speaking-indicator {
+  font-size: 12px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

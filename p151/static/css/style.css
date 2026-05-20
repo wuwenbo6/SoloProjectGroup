@@ -1,0 +1,75 @@
+.word-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: 1rem;
+}
+
+.word-cloud span {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.word-cloud span:hover {
+    transform: scale(1.2);
+    opacity: 0.8;
+}
+
+.post-item {
+    transition: all 0.3s ease;
+}
+
+.post-item:hover {
+    transform: translateX(4px);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.keyword-tag {
+    transition: all 0.2s ease;
+}
+
+.keyword-tag:hover {
+    transform: scale(1.05);
+}
+
+.platform-badge {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.platform-twitter {
+    background-color: #1da1f2;
+}
+
+.platform-reddit {
+    background-color: #ff4500;
+}
+
+.platform-telegram {
+    background-color: #0088cc;
+}
+
+.sentiment-positive {
+    color: #10b981;
+}
+
+.sentiment-negative {
+    color: #ef4444;
+}
+
+.sentiment-neutral {
+    color: #6b7280;
+}

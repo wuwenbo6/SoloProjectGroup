@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>舆情监控系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.0/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-400">📊 舆情监控系统</h1>
+            <div class="flex gap-4">
+                <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition">
+                    登录
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="mb-8 bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4">🔍 数据采集</h2>
+            <div class="flex flex-wrap gap-4">
+                <select id="platform" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
+                    <option value="twitter">Twitter</option>
+                    <option value="reddit">Reddit</option>
+                    <option value="telegram">Telegram</option>
+                </select>
+                <input type="text" id="keyword" placeholder="输入关键词..." class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 min-w-64">
+                <input type="number" id="limit" value="50" min="10" max="500" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 w-24 focus:outline-none focus:border-blue-500">
+                <button id="crawlBtn" class="bg-green-500 hover:bg-green-600 px-6 py-2 rounded-lg transition font-medium">
+                    开始采集
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-8 bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h2 class="text-xl font-semibold mb-4">🔔 关键词监控</h2>
+            <div class="flex flex-wrap gap-4 mb-4">
+                <input type="text" id="monitorKeyword" placeholder="添加监控关键词..." class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 min-w-64">
+                <button id="addMonitorBtn" class="bg-purple-500 hover:bg-purple-600 px-6 py-2 rounded-lg transition font-medium">
+                    添加监控
+                </button>
+            </div>
+            <div id="monitoredKeywords" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <div class="text-3xl font-bold text-blue-400" id="totalPosts">0</div>
+                <div class="text-gray-400 mt-1">总帖子数</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <div class="text-3xl font-bold text-green-400" id="positiveSentiment">0%</div>
+                <div class="text-gray-400 mt-1">正面情感</div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <div class="text-3xl font-bold text-red-400" id="negativeSentiment">0%</div>
+                <div class="text-gray-400 mt-1">负面情感</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">📈 舆情趋势</h3>
+                <canvas id="trendChart"></canvas>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">🎭 情感分布</h3>
+                <canvas id="sentimentChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">☁️ 词云</h3>
+                <div id="wordCloud" class="word-cloud"></div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">🌍 地理分布</h3>
+                <div id="mapContainer" class="h-64 bg-gray-700 rounded-lg flex items-center justify-center">
+                    <div class="text-gray-400 text-center">
+                        <div class="text-4xl mb-2">🗺️</div>
+                        <div>地图可视化区域</div>
+                        <div id="locationStats" class="mt-2 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 class="text-lg font-semibold mb-4">📋 平台分布</h3>
+            <canvas id="platformChart"></canvas>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">🔍 谣言检测</h3>
+                <div class="space-y-4">
+                    <input type="text" id="rumorKeyword" placeholder="输入检测关键词..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                    <select id="rumorDays" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                        <option value="7">最近7天</option>
+                        <option value="14">最近14天</option>
+                        <option value="30">最近30天</option>
+                    </select>
+                    <button id="rumorDetectBtn" class="w-full bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded-lg transition font-medium">
+                        开始检测
+                    </button>
+                </div>
+                <div id="rumorResult" class="mt-4"></div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">📊 影响力分析</h3>
+                <div class="space-y-4">
+                    <input type="text" id="influenceKeyword" placeholder="输入分析关键词..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                    <select id="influenceDays" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                        <option value="7">最近7天</option>
+                        <option value="14">最近14天</option>
+                        <option value="30">最近30天</option>
+                    </select>
+                    <button id="influenceAnalyzeBtn" class="w-full bg-indigo-500 hover:bg-indigo-600 px-6 py-2 rounded-lg transition font-medium">
+                        分析影响力
+                    </button>
+                </div>
+                <div id="influenceResult" class="mt-4"></div>
+            </div>
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-4">📄 生成报告</h3>
+                <div class="space-y-4">
+                    <input type="text" id="reportKeyword" placeholder="输入报告关键词..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                    <select id="reportDays" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                        <option value="7">最近7天</option>
+                        <option value="14">最近14天</option>
+                        <option value="30">最近30天</option>
+                    </select>
+                    <button id="generateReportBtn" class="w-full bg-teal-500 hover:bg-teal-600 px-6 py-2 rounded-lg transition font-medium">
+                        生成PDF报告
+                    </button>
+                </div>
+                <div id="reportStatus" class="mt-4"></div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 class="text-lg font-semibold mb-4">📝 最新帖子</h3>
+            <div id="postsList" class="space-y-4"></div>
+        </div>
+    </main>
+
+    <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-gray-700">
+            <h3 class="text-xl font-bold text-red-400 mb-4">⚠️ 警报通知</h3>
+            <div id="alertContent" class="mb-6"></div>
+            <button id="closeAlert" class="w-full bg-blue-500 hover:bg-blue-600 py-2 rounded-lg transition">
+                关闭
+            </button>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light Field Refocus Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #4facfe;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .slider-container {
+            margin: 12px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-item {
+            flex: 1;
+        }
+
+        .input-item label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 4px;
+        }
+
+        .input-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #displayImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .placeholder {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .placeholder svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-top: auto;
+            font-size: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+
+        .status-dot.processing {
+            background: #FFC107;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .view-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-tab.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #000;
+        }
+
+        .memory-info {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .view-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-tab.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #000;
+        }
+
+        #pointcloud-canvas {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            border-radius: 8px;
+        }
+
+        .click-hint {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #4facfe;
+            display: none;
+        }
+
+        .batch-progress {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        .batch-settings {
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .batch-settings label {
+            display: block;
+            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .batch-settings input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .point-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #fff;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>🔆 Light Field Tool</h1>
+
+            <div class="section">
+                <div class="section-title">Load Data</div>
+                <button class="btn btn-primary" id="loadBtn">
+                    <span>📁</span> Load Light Field Image
+                </button>
+                <div class="input-group">
+                    <div class="input-item">
+                        <label>Views X</label>
+                        <input type="number" id="viewsX" value="15" min="3" max="31">
+                    </div>
+                    <div class="input-item">
+                        <label>Views Y</label>
+                        <input type="number" id="viewsY" value="15" min="3" max="31">
+                    </div>
+                </div>
+                <div class="file-info" id="fileInfo">No file loaded</div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">View Mode</div>
+                <div class="view-tabs">
+                    <button class="view-tab active" data-view="refocus">Refocus</button>
+                    <button class="view-tab" data-view="allFocus">All Focus</button>
+                    <button class="view-tab" data-view="depth">Depth</button>
+                    <button class="view-tab" data-view="pointcloud">3D</button>
+                </div>
+            </div>
+
+            <div class="section" id="refocusControls">
+                <div class="section-title">Refocus Controls</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Focus Depth</span>
+                        <span id="depthValue">0.00</span>
+                    </div>
+                    <input type="range" id="focusSlider" min="-2" max="2" step="0.01" value="0" disabled>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Aperture</span>
+                        <span id="apertureValue">1.00</span>
+                    </div>
+                    <input type="range" id="apertureSlider" min="0.1" max="2" step="0.01" value="1" disabled>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">3D Point Cloud</div>
+                <button class="btn btn-secondary" id="generatePointCloudBtn" disabled>
+                    <span>🔮</span> Generate Point Cloud
+                </button>
+                <div class="input-group" style="margin-top: 10px;">
+                    <div class="input-item">
+                        <label>Focal Length</label>
+                        <input type="number" id="focalLength" value="500" step="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Batch Processing</div>
+                <button class="btn btn-secondary" id="batchBtn" disabled>
+                    <span>�</span> Batch Process Folder
+                </button>
+                <div class="batch-progress" id="batchProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0 / 0</div>
+                </div>
+                <div class="batch-settings">
+                    <label>Output Folder</label>
+                    <input type="text" id="outputFolder" placeholder="Select output folder..." readonly style="cursor: pointer;">
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Export</div>
+                <button class="btn btn-secondary" id="exportBtn" disabled>
+                    <span>�</span> Export Current Image
+                </button>
+                <button class="btn btn-secondary" id="exportPlyBtn" disabled style="margin-top: 10px;">
+                    <span>📄</span> Export PLY (Point Cloud)
+                </button>
+                <button class="btn btn-secondary" id="clearBtn" disabled style="margin-top: 10px;">
+                    <span>🗑️</span> Clear Memory
+                </button>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Ready</span>
+                </div>
+            </div>
+
+            <div class="memory-info" id="memoryInfo">
+                Memory Usage: 0 MB
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="image-container">
+                <div class="placeholder" id="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <p>Load a light field image to begin</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Supports Lytro-style raw images</p>
+                </div>
+                <canvas id="displayCanvas" style="display: none; max-width: 100%; max-height: 100%; cursor: crosshair;"></canvas>
+                <canvas id="pointcloud-canvas"></canvas>
+                <div class="click-hint" id="clickHint">
+                    👆 Click on image to focus on object
+                </div>
+                <div class="point-info" id="pointInfo">
+                    Focus Depth: <span id="focusDepthDisplay">0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

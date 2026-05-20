@@ -1,0 +1,26 @@
+server:
+  port: 8083
+  tomcat:
+    max-threads: 200
+    accept-count: 100
+    connection-timeout: 60000
+
+spring:
+  application:
+    name: semantic-matching-service
+
+semantic:
+  model:
+    path: ./data/semantic-model
+    max-input-length: 512
+    max-output-length: 1024
+  dictionary:
+    path: ./data/dictionary
+    cache-size: 10000
+  alignment:
+    threshold: 0.7
+    max-candidates: 10
+
+logging:
+  level:
+    com.ancient.book.semantic: DEBUG

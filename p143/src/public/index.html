@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFC 门禁控制系统</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>NFC 门禁控制系统</h1>
+      <div class="status-indicator" id="connectionStatus">
+        <span class="status-dot connected"></span>
+        <span>系统已连接</span>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <div class="left-panel">
+        <div class="card reader-panel">
+          <h2>读卡器状态</h2>
+          <div class="status-display" id="readerStatus">
+            <div class="icon" id="readerIcon">📡</div>
+            <p id="readerStatusText">等待卡片...</p>
+          </div>
+          
+          <div class="card-info" id="cardInfo" style="display: none;">
+            <h3>检测到卡片</h3>
+            <div class="info-row">
+              <span class="label">UID:</span>
+              <span class="value" id="cardUid">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">类型:</span>
+              <span class="value" id="cardType">-</span>
+            </div>
+            <div class="info-row">
+              <span class="label">持有人:</span>
+              <span class="value" id="cardHolder">-</span>
+            </div>
+          </div>
+
+          <div class="access-result" id="accessResult" style="display: none;">
+            <div class="result-icon" id="resultIcon">✅</div>
+            <div class="result-text" id="resultText">门禁已开启</div>
+          </div>
+        </div>
+
+        <div class="card simulate-panel">
+          <h2>模拟刷卡</h2>
+          <div class="form-group">
+            <label>选择门</label>
+            <select id="simulateDoor">
+              <option value="1">大门</option>
+              <option value="2">后门</option>
+              <option value="3">机房门</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>UID</label>
+            <input type="text" id="simulateUid" value="AABBCCDD" placeholder="输入卡片UID">
+          </div>
+          <div class="form-group">
+            <label>卡片类型</label>
+            <select id="simulateType">
+              <option value="MIFARE_CLASSIC">MIFARE Classic</option>
+              <option value="DESFIRE">DESFIRE</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>密钥 A</label>
+            <input type="text" id="simulateKeyA" value="FFFFFFFFFFFF" placeholder="Key A">
+          </div>
+          <button class="btn btn-primary" id="simulateBtn">模拟刷卡</button>
+        </div>
+
+        <div class="card doors-panel">
+          <h2>门状态监控</h2>
+          <div id="doorsList" class="doors-list">
+          </div>
+        </div>
+
+        <div class="card stats-panel">
+          <h2>系统统计</h2>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="totalCards">0</div>
+              <div class="stat-label">总卡片数</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="activeCards">0</div>
+              <div class="stat-label">激活卡片</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="todayAccesses">0</div>
+              <div class="stat-label">今日通行</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="totalAccesses">0</div>
+              <div class="stat-label">总通行数</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="cards">卡片管理</button>
+          <button class="tab-btn" data-tab="logs">门禁记录</button>
+          <button class="tab-btn" data-tab="schedule">时段管理</button>
+          <button class="tab-btn" data-tab="doors">门管理</button>
+        </div>
+
+        <div class="tab-content active" id="cards-tab">
+          <div class="card-management">
+            <div class="add-card-form">
+              <h3>添加新卡片</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>UID *</label>
+                  <input type="text" id="newCardUid" placeholder="例如: AABBCCDD">
+                </div>
+                <div class="form-group">
+                  <label>卡片类型 *</label>
+                  <select id="newCardType">
+                    <option value="MIFARE_CLASSIC">MIFARE Classic</option>
+                    <option value="DESFIRE">DESFIRE</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>持有人</label>
+                  <input type="text" id="newCardHolder" placeholder="持有人姓名">
+                </div>
+                <div class="form-group">
+                  <label>密钥 A</label>
+                  <input type="text" id="newCardKeyA" value="FFFFFFFFFFFF" placeholder="12位十六进制">
+                </div>
+              </div>
+              <button class="btn btn-success" id="addCardBtn">添加卡片</button>
+            </div>
+
+            <div class="cards-list">
+              <h3>已授权卡片</h3>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>UID</th>
+                      <th>类型</th>
+                      <th>持有人</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cardsTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="logs-tab">
+          <div class="logs-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3>门禁记录</h3>
+              <button class="btn btn-primary" id="exportExcelBtn">📥 导出Excel</button>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>UID</th>
+                    <th>持有人</th>
+                    <th>门ID</th>
+                    <th>结果</th>
+                    <th>原因</th>
+                  </tr>
+                </thead>
+                <tbody id="logsTableBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="schedule-tab">
+          <div class="schedule-management">
+            <div class="add-schedule-form">
+              <h3>添加时段规则</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>名称 *</label>
+                  <input type="text" id="newScheduleName" placeholder="例如: 工作时段">
+                </div>
+                <div class="form-group">
+                  <label>描述</label>
+                  <input type="text" id="newScheduleDesc" placeholder="描述">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>开始时间 *</label>
+                  <input type="time" id="newScheduleStart" value="09:00">
+                </div>
+                <div class="form-group">
+                  <label>结束时间 *</label>
+                  <input type="time" id="newScheduleEnd" value="18:00">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>生效星期 * (多选)</label>
+                <div class="days-checkboxes">
+                  <label><input type="checkbox" name="day" value="1" checked> 周一</label>
+                  <label><input type="checkbox" name="day" value="2" checked> 周二</label>
+                  <label><input type="checkbox" name="day" value="3" checked> 周三</label>
+                  <label><input type="checkbox" name="day" value="4" checked> 周四</label>
+                  <label><input type="checkbox" name="day" value="5" checked> 周五</label>
+                  <label><input type="checkbox" name="day" value="6"> 周六</label>
+                  <label><input type="checkbox" name="day" value="0"> 周日</label>
+                </div>
+              </div>
+              <button class="btn btn-success" id="addScheduleBtn">添加时段</button>
+            </div>
+
+            <div class="schedules-list">
+              <h3>时段规则列表</h3>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>名称</th>
+                      <th>时间段</th>
+                      <th>星期</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="schedulesTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="holidays-section" style="margin-top: 30px;">
+              <h3>节假日管理</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>日期</label>
+                  <input type="date" id="newHolidayDate">
+                </div>
+                <div class="form-group">
+                  <label>名称</label>
+                  <input type="text" id="newHolidayName" placeholder="例如: 国庆节">
+                </div>
+              </div>
+              <button class="btn btn-success" id="addHolidayBtn">添加节假日</button>
+              
+              <div class="table-container" style="margin-top: 16px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>日期</th>
+                      <th>名称</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="holidaysTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="doors-tab">
+          <div class="doors-management">
+            <div class="add-door-form">
+              <h3>添加门</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>门名称 *</label>
+                  <input type="text" id="newDoorName" placeholder="例如: 大门">
+                </div>
+                <div class="form-group">
+                  <label>描述</label>
+                  <input type="text" id="newDoorDesc" placeholder="描述">
+                </div>
+              </div>
+              <button class="btn btn-success" id="addDoorBtn">添加门</button>
+            </div>
+
+            <div class="interlocks-section" style="margin-top: 30px;">
+              <h3>多门互锁规则</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>门1</label>
+                  <select id="interlockDoor1">
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>门2</label>
+                  <select id="interlockDoor2">
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-success" id="addInterlockBtn">添加互锁规则</button>
+              
+              <div class="table-container" style="margin-top: 16px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>门1</th>
+                      <th>门2</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="interlocksTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification" id="notification">
+    <div class="notification-content">
+      <span class="notification-icon" id="notificationIcon">✅</span>
+      <span class="notification-message" id="notificationMessage">门禁已开启</span>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

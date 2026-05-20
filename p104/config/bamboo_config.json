@@ -1,0 +1,29 @@
+{
+  "species": [
+    {
+      "name": "Phyllostachys pubescens",
+      "youngs_modulus": 12000000000.0,
+      "shear_modulus": 5000000000.0,
+      "density": 780.0,
+      "tensile_strength": 120000000.0,
+      "poisson_ratio": 0.3
+    },
+    {
+      "name": "Phyllostachys bambusoides",
+      "youngs_modulus": 15000000000.0,
+      "shear_modulus": 6000000000.0,
+      "density": 820.0,
+      "tensile_strength": 150000000.0,
+      "poisson_ratio": 0.28
+    }
+  ],
+  "strips": [
+    {
+      "species_name": "Phyllostachys pubescens",
+      "length": 1.0,
+      "width": 0.005,
+      "thickness": 0.001,
+      "moisture_content": 12.0
+    }
+  ]
+}

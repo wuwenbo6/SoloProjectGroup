@@ -1,0 +1,16 @@
+{
+  "name": "传统松烟墨",
+  "materials": {
+    "松烟": 0.65,
+    "骨胶": 0.25,
+    "珍珠粉": 0.05,
+    "冰片": 0.05
+  },
+  "process_params": {
+    "firing_temperature": 900.0,
+    "firing_time": 150.0,
+    "grinding_time": 90.0,
+    "mixing_temperature": 25.0
+  },
+  "saved_at": "2026-05-19T10:43:11.216017"
+}

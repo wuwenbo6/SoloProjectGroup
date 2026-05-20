@@ -1,0 +1,496 @@
+[FileInfo]
+FileName=example.eds
+FileVersion=1
+FileRevision=0
+EDSVersion=4.0
+Description=Example CANopen Device EDS File
+CreationTime=12:00PM
+CreationDate=2024-01-01
+CreatedBy=ExampleManufacturer
+ModificationTime=12:00PM
+ModificationDate=2024-01-01
+ModifiedBy=ExampleManufacturer
+
+[DeviceInfo]
+VendorName=ExampleManufacturer
+VendorID=0x00000001
+ProductName=Example CANopen Device
+ProductNumber=0x00000001
+RevisionNumber=0x00010001
+OrderCode=EX-CO-001
+BaudRate_10=1
+BaudRate_20=1
+BaudRate_50=1
+BaudRate_125=1
+BaudRate_250=1
+BaudRate_500=1
+BaudRate_800=1
+BaudRate_1000=1
+SimpleBootUpMaster=0
+SimpleBootUpSlave=1
+Granularity=8
+DynamicChannelsSupported=0
+GroupMessaging=0
+NrOfRXPDO=4
+NrOfTXPDO=4
+LSS_Supported=0
+
+[DeviceComissioning]
+NodeID=1
+NodeName=ExampleDevice
+BaudRate=250
+NetNumber=0
+NetworkName=CANopenNetwork
+
+[DummyUsage]
+Dummy0001=0
+Dummy0002=0
+Dummy0003=0
+Dummy0004=0
+
+[Comments]
+Lines=2
+Line1=Example CANopen Device EDS File
+Line2=For demonstration purposes only
+
+[1000]
+ParameterName=Device type
+ObjectType=0x7
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=0
+
+[1001]
+ParameterName=Error register
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x00
+PDOMapping=1
+
+[1002]
+ParameterName=Manufacturer status register
+ObjectType=0x7
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
+PDOMapping=1
+
+[1003]
+ParameterName=Pre-defined error field
+ObjectType=0x8
+SubNumber=6
+DataType=0x0007
+AccessType=ro
+PDOMapping=0
+DefaultValue=0
+
+[1003sub0]
+ParameterName=Number of errors
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[1003sub1]
+ParameterName=Standard error field
+ObjectType=0x7
+DataType=0x0007
+AccessType=ro
+PDOMapping=0
+
+[1005]
+ParameterName=COB-ID SYNC message
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000080
+PDOMapping=0
+
+[1006]
+ParameterName=Communication cycle period
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[100C]
+ParameterName=Guard time
+ObjectType=0x7
+DataType=0x0006
+AccessType=rw
+DefaultValue=0x0000
+PDOMapping=0
+
+[100D]
+ParameterName=Life time factor
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[1010]
+ParameterName=Store parameters
+ObjectType=0x8
+SubNumber=5
+DataType=0x0007
+AccessType=rw
+PDOMapping=0
+
+[1010sub0]
+ParameterName=Number of supported parameters
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x01
+PDOMapping=0
+
+[1010sub1]
+ParameterName=Save all parameters
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+PDOMapping=0
+
+[1011]
+ParameterName=Restore default parameters
+ObjectType=0x8
+SubNumber=5
+DataType=0x0007
+AccessType=rw
+PDOMapping=0
+
+[1011sub0]
+ParameterName=Number of supported parameters
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x01
+PDOMapping=0
+
+[1011sub1]
+ParameterName=Restore all default parameters
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+PDOMapping=0
+
+[1017]
+ParameterName=Producer heartbeat time
+ObjectType=0x7
+DataType=0x0006
+AccessType=rw
+DefaultValue=0x0000
+PDOMapping=0
+
+[1400]
+ParameterName=Receive PDO 1 communication parameter
+ObjectType=0x8
+SubNumber=6
+PDOMapping=0
+
+[1400sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[1400sub1]
+ParameterName=COB-ID used by PDO
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x20000201
+PDOMapping=0
+
+[1400sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[1401]
+ParameterName=Receive PDO 2 communication parameter
+ObjectType=0x8
+SubNumber=6
+PDOMapping=0
+
+[1401sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[1401sub1]
+ParameterName=COB-ID used by PDO
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x20000301
+PDOMapping=0
+
+[1401sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[1600]
+ParameterName=Receive PDO 1 mapping parameter
+ObjectType=0x8
+SubNumber=9
+PDOMapping=0
+
+[1600sub0]
+ParameterName=Number of mapped application objects
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x02
+PDOMapping=0
+
+[1600sub1]
+ParameterName=1st mapped object
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x62000508
+PDOMapping=0
+
+[1600sub2]
+ParameterName=2nd mapped object
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x62000610
+PDOMapping=0
+
+[1601]
+ParameterName=Receive PDO 2 mapping parameter
+ObjectType=0x8
+SubNumber=9
+PDOMapping=0
+
+[1601sub0]
+ParameterName=Number of mapped application objects
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[1800]
+ParameterName=Transmit PDO 1 communication parameter
+ObjectType=0x8
+SubNumber=6
+PDOMapping=0
+
+[1800sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x05
+PDOMapping=0
+
+[1800sub1]
+ParameterName=COB-ID used by PDO
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x181
+PDOMapping=0
+
+[1800sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[1800sub3]
+ParameterName=Inhibit time
+ObjectType=0x7
+DataType=0x0006
+AccessType=rw
+DefaultValue=0x0000
+PDOMapping=0
+
+[1800sub5]
+ParameterName=Event timer
+ObjectType=0x7
+DataType=0x0006
+AccessType=rw
+DefaultValue=0x0000
+PDOMapping=0
+
+[1800sub6]
+ParameterName=SYNC start value
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[1801]
+ParameterName=Transmit PDO 2 communication parameter
+ObjectType=0x8
+SubNumber=6
+PDOMapping=0
+
+[1801sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x05
+PDOMapping=0
+
+[1801sub1]
+ParameterName=COB-ID used by PDO
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x281
+PDOMapping=0
+
+[1801sub2]
+ParameterName=Transmission type
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0xFF
+PDOMapping=0
+
+[1A00]
+ParameterName=Transmit PDO 1 mapping parameter
+ObjectType=0x8
+SubNumber=9
+PDOMapping=0
+
+[1A00sub0]
+ParameterName=Number of mapped application objects
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x02
+PDOMapping=0
+
+[1A00sub1]
+ParameterName=1st mapped object
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x60000108
+PDOMapping=0
+
+[1A00sub2]
+ParameterName=2nd mapped object
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x60000210
+PDOMapping=0
+
+[1A01]
+ParameterName=Transmit PDO 2 mapping parameter
+ObjectType=0x8
+SubNumber=9
+PDOMapping=0
+
+[1A01sub0]
+ParameterName=Number of mapped application objects
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=0
+
+[2000]
+ParameterName=Manufacturer specific object
+ObjectType=0x7
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+PDOMapping=0
+
+[2001]
+ParameterName=Manufacturer specific string
+ObjectType=0x7
+DataType=0x0009
+AccessType=ro
+DefaultValue="Example String"
+PDOMapping=0
+
+[6000]
+ParameterName=Input data
+ObjectType=0x8
+SubNumber=2
+PDOMapping=0
+
+[6000sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[6000sub1]
+ParameterName=Input 1
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x00
+PDOMapping=1
+
+[6000sub2]
+ParameterName=Input 2
+ObjectType=0x7
+DataType=0x0006
+AccessType=ro
+DefaultValue=0x0000
+PDOMapping=1
+
+[6200]
+ParameterName=Output data
+ObjectType=0x8
+SubNumber=2
+PDOMapping=0
+
+[6200sub0]
+ParameterName=Number of entries
+ObjectType=0x7
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x02
+PDOMapping=0
+
+[6200sub1]
+ParameterName=Output 1
+ObjectType=0x7
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x00
+PDOMapping=1
+
+[6200sub2]
+ParameterName=Output 2
+ObjectType=0x7
+DataType=0x0006
+AccessType=rw
+DefaultValue=0x0000
+PDOMapping=1

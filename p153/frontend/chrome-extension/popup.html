@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>维吾尔语翻译助手</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      color: white;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.3);
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: #10b981;
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-size: 14px;
+      resize: none;
+      height: 80px;
+      font-family: inherit;
+    }
+
+    textarea::placeholder {
+      color: #999;
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .mic-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .mic-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .mic-btn.recording {
+      background: #ef4444;
+      color: white;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .translate-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .translate-btn:hover {
+      background: white;
+      transform: translateY(-1px);
+    }
+
+    .translate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .result-container {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      color: #333;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+    }
+
+    .result-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .result-text {
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .terms-list {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .term-item {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .term-pair {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .term-ug {
+      color: #667eea;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .term-zh {
+      color: #764ba2;
+      font-weight: 500;
+      flex: 1;
+      text-align: right;
+    }
+
+    .term-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .term-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .term-action-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .term-action-btn.delete {
+      background: #fee;
+      color: #e33;
+    }
+
+    .add-term-form {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #667eea;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .report-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      color: #333;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .report-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .report-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .report-btn:hover {
+      background: white;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      opacity: 0.7;
+      font-size: 13px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .status-dot.connected {
+      background: #10b981;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>维吾尔语翻译助手</h1>
+    <p>Uyghur-Chinese Translator v2.0</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="translate">翻译</button>
+    <button class="tab-btn" data-tab="terms">术语</button>
+    <button class="tab-btn" data-tab="report">报告</button>
+  </div>
+
+  <div id="translate" class="tab-content active">
+    <div class="section">
+      <div class="toggle-row">
+        <span class="toggle-label">启用页面高亮</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="enableToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">快速翻译</div>
+      <div class="input-group">
+        <textarea id="translateInput" placeholder="输入维吾尔语文本..."></textarea>
+        <div class="input-actions">
+          <button class="mic-btn" id="micBtn">
+            <span>🎤</span> 语音输入
+          </button>
+          <button class="translate-btn" id="translateBtn">翻译</button>
+        </div>
+      </div>
+      <div class="result-container" id="resultContainer">
+        <div class="result-label">翻译结果：</div>
+        <div class="result-text" id="resultText"></div>
+      </div>
+      <div class="status-indicator">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">检查中...</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="terms" class="tab-content">
+    <div class="section">
+      <div class="section-title">添加术语</div>
+      <div class="add-term-form">
+        <div class="form-row">
+          <input type="text" class="form-input" id="termUg" placeholder="维吾尔语术语">
+          <input type="text" class="form-input" id="termZh" placeholder="汉语翻译">
+        </div>
+        <div class="form-row">
+          <input type="text" class="form-input" id="termCategory" placeholder="分类（可选）">
+        </div>
+        <button class="add-btn" id="addTermBtn">添加术语</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">术语列表</div>
+      <div class="terms-list" id="termsList">
+        <div class="empty-state">暂无术语</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="report" class="tab-content">
+    <div class="section">
+      <div class="section-title">统计摘要</div>
+      <div class="report-stats">
+        <div class="stat-card">
+          <div class="stat-value" id="totalTranslations">0</div>
+          <div class="stat-label">总翻译次数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalTerms">0</div>
+          <div class="stat-label">术语数量</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avgTime">-</div>
+          <div class="stat-label">平均耗时(s)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avgRating">-</div>
+          <div class="stat-label">平均评分</div>
+        </div>
+      </div>
+      <div class="report-actions">
+        <button class="report-btn" id="viewReportBtn">
+          <span>📄</span> 查看报告
+        </button>
+        <button class="report-btn" id="downloadReportBtn">
+          <span>⬇️</span> 下载报告
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    v2.0.0 | 支持语音输入 · 术语管理 · 报告导出
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

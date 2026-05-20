@@ -1,0 +1,29 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+wifi-probe-analytics
+
+# Go
+*.test
+*.out
+go.work
+
+# Environment
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Docker volumes
+influxdb_data/

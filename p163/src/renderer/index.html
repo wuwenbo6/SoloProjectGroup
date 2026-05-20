@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简谱识别播放器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>🎵 简谱识别播放器</h1>
+      <div class="header-actions">
+        <button id="libraryBtn" class="btn btn-secondary">📚 乐谱库</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h3>导入图片</h3>
+          <button id="selectImagesBtn" class="btn btn-primary btn-block">
+            📷 选择简谱图片
+          </button>
+          <div id="selectedFiles" class="file-list"></div>
+          <button id="processBtn" class="btn btn-success btn-block" disabled>
+            🔍 识别音符
+          </button>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>播放控制</h3>
+          <div class="tempo-control">
+            <label>速度 (BPM):</label>
+            <input type="range" id="tempoSlider" min="40" max="200" value="120">
+            <span id="tempoValue">120</span>
+          </div>
+          <div class="play-controls">
+            <button id="playBtn" class="btn btn-primary" disabled>▶️ 播放</button>
+            <button id="pauseBtn" class="btn btn-warning" disabled>⏸️ 暂停</button>
+            <button id="stopBtn" class="btn btn-danger" disabled>⏹️ 停止</button>
+          </div>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <div class="time-display">
+            <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>MIDI设备</h3>
+          <select id="midiOutputs" class="form-control">
+            <option value="">选择MIDI输出...</option>
+          </select>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>🎵 伴奏设置</h3>
+          <div class="setting-row">
+            <label>调号:</label>
+            <select id="keySelect" class="form-control">
+              <option value="C">C 大调</option>
+              <option value="G">G 大调</option>
+              <option value="D">D 大调</option>
+              <option value="F">F 大调</option>
+              <option value="Am">a 小调</option>
+              <option value="Em">e 小调</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label>伴奏风格:</label>
+            <select id="styleSelect" class="form-control">
+              <option value="piano">钢琴分解</option>
+              <option value="arpeggio">琶音</option>
+              <option value="block">柱式和弦</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <label>
+              <input type="checkbox" id="accompanimentToggle" checked>
+              启用伴奏
+            </label>
+          </div>
+          <button id="regenChordsBtn" class="btn btn-secondary btn-block" disabled>
+            🔄 重新生成和弦
+          </button>
+        </div>
+
+        <div class="sidebar-section">
+          <h3>💾 保存乐谱</h3>
+          <input type="text" id="scoreName" class="form-control" placeholder="乐谱名称">
+          <button id="saveBtn" class="btn btn-primary btn-block" disabled>
+            💾 保存到库
+          </button>
+          <button id="exportBtn" class="btn btn-info btn-block" disabled>
+            📄 导出 MusicXML
+          </button>
+        </div>
+      </aside>
+
+      <section class="content-area">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="score">🎼 乐谱显示</button>
+          <button class="tab-btn" data-tab="notes">📝 音符列表</button>
+          <button class="tab-btn" data-tab="midi">🎹 MIDI事件</button>
+        </div>
+
+        <div id="scoreTab" class="tab-content active">
+          <div id="scoreDisplay" class="score-display">
+            <div class="empty-state">
+              <p>选择简谱图片开始识别</p>
+              <p class="hint">支持多页谱面拼接</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="notesTab" class="tab-content">
+          <div id="notesList" class="notes-list">
+            <div class="empty-state">暂无音符数据</div>
+          </div>
+        </div>
+
+        <div id="midiTab" class="tab-content">
+          <div id="midiEvents" class="midi-events">
+            <div class="empty-state">暂无MIDI事件</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="libraryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📚 乐谱库</h2>
+        <button class="close-btn" id="closeLibrary">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="libraryList" class="library-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

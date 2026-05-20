@@ -1,0 +1,50 @@
+apiVersion: netpol.ebpf.cni/v1
+kind: L7NetworkPolicy
+metadata:
+  name: api-restrict
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: api-server
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    ports:
+    - protocol: TCP
+      port: 80
+    http:
+      paths:
+      - "/admin/*"
+      - "/private/*"
+      methods:
+      - "POST"
+      - "PUT"
+      - "DELETE"
+
+---
+apiVersion: netpol.ebpf.cni/v1
+kind: L7NetworkPolicy
+metadata:
+  name: grpc-restrict
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: grpc-server
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 50051
+    grpc:
+      services:
+      - "UserService"
+      - "AdminService"

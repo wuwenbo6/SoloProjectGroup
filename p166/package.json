@@ -1,0 +1,34 @@
+{
+  "name": "astro-stack",
+  "version": "1.0.0",
+  "description": "Astronomical image stacking and processing application",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": ["astronomy", "fits", "image-stacking", "astrophotography"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "python-shell": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.astrostack.app",
+    "productName": "AstroStack",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/**/*",
+      "python/**/*"
+    ]
+  }
+}

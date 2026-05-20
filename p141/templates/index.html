@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>室内定位系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 20px; }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #51cf66;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        .sidebar {
+            width: 320px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #343a40;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .device-list {
+            list-style: none;
+        }
+        .device-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .device-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .device-item.active {
+            border: 2px solid #667eea;
+        }
+        .device-name {
+            font-weight: 600;
+            color: #343a40;
+        }
+        .device-id {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        .device-pos {
+            font-size: 13px;
+            color: #495057;
+            margin-top: 8px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+        .floor-selector {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .floor-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .floor-btn:hover {
+            border-color: #667eea;
+        }
+        .floor-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .mode-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .poi-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .poi-item {
+            background: white;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .poi-item:hover {
+            background: #e9ecef;
+        }
+        .poi-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            color: white;
+            margin-right: 5px;
+        }
+        .poi-type.entrance { background: #3498db; }
+        .poi-type.service { background: #2ecc71; }
+        .poi-type.meeting { background: #e74c3c; }
+        .poi-type.facility { background: #9b59b6; }
+        .poi-type.food { background: #f39c12; }
+        .poi-type.office { background: #1abc9c; }
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 200px;
+        }
+        .info-panel h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #343a40;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+        .legend-marker {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        .legend-line {
+            width: 30px;
+            height: 3px;
+        }
+        .legend-rect {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+        }
+        .path-info {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .path-info h4 {
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏠 室内定位系统</h1>
+        <div class="status">
+            <div class="status-dot"></div>
+            <span id="connection-status">已连接</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <h2>🏢 楼层选择</h2>
+                <div class="floor-selector" id="floorSelector"></div>
+            </div>
+            
+            <div class="section">
+                <h2>🎯 操作模式</h2>
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="view">浏览</button>
+                    <button class="mode-btn" data-mode="path">路径规划</button>
+                    <button class="mode-btn" data-mode="heatmap">热力图</button>
+                </div>
+                <div id="pathInfo" class="path-info" style="display: none;">
+                    <h4>路径规划</h4>
+                    <div id="pathInstructions">点击地图设置起点</div>
+                    <button class="btn btn-primary" id="clearPathBtn" style="margin-top: 10px;">清除路径</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📍 POI兴趣点</h2>
+                <div class="poi-list" id="poiList"></div>
+            </div>
+            
+            <div class="section">
+                <h2>📱 设备列表</h2>
+                <ul class="device-list" id="deviceList"></ul>
+            </div>
+            
+            <div class="section">
+                <h2>⚙️ 控制</h2>
+                <button class="btn btn-primary" onclick="refreshDevices()">刷新设备</button>
+                <button class="btn btn-primary" onclick="toggleTrajectory()">显示/隐藏轨迹</button>
+                <button class="btn btn-danger" onclick="clearTrajectory()">清除轨迹</button>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #e74c3c;"></div>
+                    <span>当前位置</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #3498db;"></div>
+                    <span>运动轨迹</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background: #2ecc71;"></div>
+                    <span>规划路径</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-rect" style="background: #95a5a6;"></div>
+                    <span>障碍物</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #f39c12;"></div>
+                    <span>POI</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #9b59b6;"></div>
+                    <span>路径起点</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #27ae60;"></div>
+                    <span>路径终点</span>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h3>📍 位置信息</h3>
+                <div class="info-row">
+                    <span>当前楼层:</span>
+                    <span id="currentFloor">-</span>
+                </div>
+                <div class="info-row">
+                    <span>X 坐标:</span>
+                    <span id="posX">-</span>
+                </div>
+                <div class="info-row">
+                    <span>Y 坐标:</span>
+                    <span id="posY">-</span>
+                </div>
+                <div class="info-row">
+                    <span>速度 X:</span>
+                    <span id="velX">-</span>
+                </div>
+                <div class="info-row">
+                    <span>速度 Y:</span>
+                    <span id="velY">-</span>
+                </div>
+                <div class="info-row">
+                    <span>不确定度:</span>
+                    <span id="uncertainty">-</span>
+                </div>
+                <div class="info-row">
+                    <span>数据源:</span>
+                    <span id="dataSource">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const map = L.map('map').setView([39.9042, 116.4074], 20);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        const buildingLayer = L.layerGroup().addTo(map);
+        const obstacleLayer = L.layerGroup().addTo(map);
+        const poiLayer = L.layerGroup().addTo(map);
+        const heatmapLayer = L.layerGroup().addTo(map);
+        const pathLayer = L.layerGroup().addTo(map);
+        
+        const deviceMarkers = {};
+        const deviceTrajectories = {};
+        const trajectoryPoints = {};
+        
+        let showTrajectory = true;
+        let selectedDevice = null;
+        let currentFloor = null;
+        let floors = [];
+        let buildings = [];
+        let pois = [];
+        
+        let currentMode = 'view';
+        let pathStart = null;
+        let pathEnd = null;
+        let startMarker = null;
+        let endMarker = null;
+        let currentPathLine = null;
+        
+        const centerLat = 39.9042;
+        const centerLng = 116.4074;
+        const metersPerDegLat = 111000;
+        const metersPerDegLng = 111000 * Math.cos(centerLat * Math.PI / 180);
+        
+        function localToLatLng(x, y) {
+            const lat = centerLat + y / metersPerDegLat;
+            const lng = centerLng + x / metersPerDegLng;
+            return [lat, lng];
+        }
+        
+        function latLngToLocal(lat, lng) {
+            const x = (lng - centerLng) * metersPerDegLng;
+            const y = (lat - centerLat) * metersPerDegLat;
+            return [x, y];
+        }
+        
+        const socket = io();
+        
+        socket.on('connect', () => {
+            document.getElementById('connection-status').textContent = '已连接';
+            document.querySelector('.status-dot').style.background = '#51cf66';
+        });
+        
+        socket.on('disconnect', () => {
+            document.getElementById('connection-status').textContent = '已断开';
+            document.querySelector('.status-dot').style.background = '#e74c3c';
+        });
+        
+        socket.on('position_update', (data) => {
+            updateDevicePosition(data.device_id, data.position, data.source);
+        });
+        
+        async function initBuilding() {
+            try {
+                const buildingResponse = await fetch('/api/mapping/buildings');
+                const buildingData = await buildingResponse.json();
+                buildings = buildingData.buildings;
+                
+                if (buildings.length > 0) {
+                    const building = buildings[0];
+                    const floorsResponse = await fetch(`/api/mapping/buildings/${building.id}/floors`);
+                    const floorsData = await floorsResponse.json();
+                    floors = floorsData.floors;
+                    
+                    renderFloorSelector();
+                    
+                    if (floors.length > 0) {
+                        selectFloor(floors[0].id);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to init building:', e);
+            }
+        }
+        
+        function renderFloorSelector() {
+            const selector = document.getElementById('floorSelector');
+            selector.innerHTML = '';
+            
+            floors.forEach(floor => {
+                const btn = document.createElement('button');
+                btn.className = 'floor-btn';
+                btn.textContent = floor.name;
+                btn.dataset.floorId = floor.id;
+                btn.onclick = () => selectFloor(floor.id);
+                selector.appendChild(btn);
+            });
+        }
+        
+        async function selectFloor(floorId) {
+            currentFloor = floors.find(f => f.id === floorId);
+            
+            document.querySelectorAll('.floor-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.floorId == floorId);
+            });
+            
+            document.getElementById('currentFloor').textContent = currentFloor.name;
+            
+            obstacleLayer.clearLayers();
+            poiLayer.clearLayers();
+            heatmapLayer.clearLayers();
+            
+            try {
+                const obstaclesResponse = await fetch(`/api/mapping/floors/${floorId}/obstacles`);
+                const obstaclesData = await obstaclesResponse.json();
+                
+                obstaclesData.obstacles.forEach(obs => {
+                    const bounds = [
+                        localToLatLng(obs.x1, obs.y1),
+                        localToLatLng(obs.x2, obs.y2)
+                    ];
+                    
+                    let color = '#95a5a6';
+                    if (obs.type === 'wall') color = '#7f8c8d';
+                    else if (obs.type === 'room') color = '#bdc3c7';
+                    else if (obs.type === 'elevator') color = '#3498db';
+                    
+                    L.rectangle(bounds, {
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.5,
+                        weight: 2
+                    }).addTo(obstacleLayer);
+                });
+                
+                const poiResponse = await fetch(`/api/mapping/floors/${floorId}/pois`);
+                const poiData = await poiResponse.json();
+                pois = poiData.pois;
+                
+                renderPOIList();
+                
+                pois.forEach(poi => {
+                    const latlng = localToLatLng(poi.x, poi.y);
+                    
+                    let color = '#f39c12';
+                    if (poi.type === 'entrance') color = '#3498db';
+                    else if (poi.type === 'service') color = '#2ecc71';
+                    else if (poi.type === 'meeting') color = '#e74c3c';
+                    else if (poi.type === 'facility') color = '#9b59b6';
+                    else if (poi.type === 'food') color = '#f39c12';
+                    else if (poi.type === 'office') color = '#1abc9c';
+                    
+                    const marker = L.circleMarker(latlng, {
+                        radius: 6,
+                        fillColor: color,
+                        color: color,
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(poiLayer);
+                    
+                    marker.bindPopup(`<b>${poi.name}</b><br>${poi.description || ''}`);
+                });
+                
+            } catch (e) {
+                console.error('Failed to load floor data:', e);
+            }
+        }
+        
+        function renderPOIList() {
+            const list = document.getElementById('poiList');
+            list.innerHTML = '';
+            
+            pois.forEach(poi => {
+                const item = document.createElement('div');
+                item.className = 'poi-item';
+                item.innerHTML = `
+                    <span class="poi-type ${poi.type}">${poi.type}</span>
+                    ${poi.name}
+                `;
+                item.onclick = () => {
+                    const latlng = localToLatLng(poi.x, poi.y);
+                    map.panTo(latlng);
+                    
+                    if (currentMode === 'path' && pathStart && !pathEnd) {
+                        pathEnd = { x: poi.x, y: poi.y };
+                        calculatePath();
+                    }
+                };
+                list.appendChild(item);
+            });
+        }
+        
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.onclick = () => {
+                currentMode = btn.dataset.mode;
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.getElementById('pathInfo').style.display = currentMode === 'path' ? 'block' : 'none';
+                
+                if (currentMode !== 'path') {
+                    clearPathMarkers();
+                }
+                
+                if (currentMode === 'heatmap') {
+                    loadHeatmap();
+                } else {
+                    heatmapLayer.clearLayers();
+                }
+            };
+        });
+        
+        map.on('click', async (e) => {
+            if (currentMode === 'path') {
+                const localCoords = latLngToLocal(e.latlng.lat, e.latlng.lng);
+                
+                if (!pathStart) {
+                    pathStart = { x: localCoords[0], y: localCoords[1] };
+                    
+                    startMarker = L.circleMarker(e.latlng, {
+                        radius: 8,
+                        fillColor: '#9b59b6',
+                        color: '#9b59b6',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(pathLayer);
+                    
+                    document.getElementById('pathInstructions').textContent = '点击地图或POI设置终点';
+                } else if (!pathEnd) {
+                    pathEnd = { x: localCoords[0], y: localCoords[1] };
+                    
+                    endMarker = L.circleMarker(e.latlng, {
+                        radius: 8,
+                        fillColor: '#27ae60',
+                        color: '#27ae60',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(pathLayer);
+                    
+                    calculatePath();
+                }
+            }
+        });
+        
+        async function calculatePath() {
+            if (!pathStart || !pathEnd || !currentFloor) return;
+            
+            try {
+                const response = await fetch(`/api/mapping/floors/${currentFloor.id}/path`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        start_x: pathStart.x,
+                        start_y: pathStart.y,
+                        end_x: pathEnd.x,
+                        end_y: pathEnd.y
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.path) {
+                    const latlngPath = data.path.map(p => localToLatLng(p[0], p[1]));
+                    
+                    if (currentPathLine) {
+                        pathLayer.removeLayer(currentPathLine);
+                    }
+                    
+                    currentPathLine = L.polyline(latlngPath, {
+                        color: '#2ecc71',
+                        weight: 4,
+                        opacity: 0.8,
+                        dashArray: '10, 5'
+                    }).addTo(pathLayer);
+                    
+                    document.getElementById('pathInstructions').innerHTML = 
+                        `路径规划完成<br>距离: ${data.distance.toFixed(1)}米<br>路径点: ${data.waypoints}个`;
+                }
+            } catch (e) {
+                console.error('Path planning failed:', e);
+                document.getElementById('pathInstructions').textContent = '路径规划失败，请重试';
+            }
+        }
+        
+        function clearPathMarkers() {
+            pathStart = null;
+            pathEnd = null;
+            
+            if (startMarker) {
+                pathLayer.removeLayer(startMarker);
+                startMarker = null;
+            }
+            if (endMarker) {
+                pathLayer.removeLayer(endMarker);
+                endMarker = null;
+            }
+            if (currentPathLine) {
+                pathLayer.removeLayer(currentPathLine);
+                currentPathLine = null;
+            }
+            
+            document.getElementById('pathInstructions').textContent = '点击地图设置起点';
+        }
+        
+        document.getElementById('clearPathBtn').onclick = clearPathMarkers;
+        
+        async function loadHeatmap() {
+            if (!currentFloor) return;
+            
+            try {
+                const response = await fetch(`/api/mapping/floors/${currentFloor.id}/heatmap`);
+                const data = await response.json();
+                
+                heatmapLayer.clearLayers();
+                
+                if (data.heatmap.length === 0) {
+                    document.getElementById('pathInstructions').innerHTML = 
+                        '暂无热力图数据<br>可从轨迹数据生成';
+                    return;
+                }
+                
+                const maxError = Math.max(...data.heatmap.map(h => h.error_mean));
+                const minError = Math.min(...data.heatmap.map(h => h.error_mean));
+                
+                data.heatmap.forEach(point => {
+                    const latlng = localToLatLng(
+                        point.grid_x * currentFloor.grid_size + currentFloor.grid_size / 2,
+                        point.grid_y * currentFloor.grid_size + currentFloor.grid_size / 2
+                    );
+                    
+                    const normalizedError = (point.error_mean - minError) / (maxError - minError + 0.01);
+                    
+                    let color = '#2ecc71';
+                    if (normalizedError > 0.33) color = '#f39c12';
+                    if (normalizedError > 0.66) color = '#e74c3c';
+                    
+                    L.rectangle([
+                        [latlng[0] - 0.000004, latlng[1] - 0.000004],
+                        [latlng[0] + 0.000004, latlng[1] + 0.000004]
+                    ], {
+                        fillColor: color,
+                        color: color,
+                        fillOpacity: 0.3 + normalizedError * 0.4,
+                        weight: 0
+                    }).addTo(heatmapLayer);
+                });
+                
+            } catch (e) {
+                console.error('Failed to load heatmap:', e);
+            }
+        }
+        
+        function updateDevicePosition(deviceId, position, source) {
+            const latlng = localToLatLng(position.x, position.y);
+            
+            if (!deviceMarkers[deviceId]) {
+                deviceMarkers[deviceId] = L.circleMarker(latlng, {
+                    radius: 10,
+                    fillColor: '#e74c3c',
+                    color: '#e74c3c',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                
+                deviceTrajectories[deviceId] = L.polyline([], {
+                    color: '#3498db',
+                    weight: 3,
+                    opacity: 0.7
+                }).addTo(map);
+                
+                trajectoryPoints[deviceId] = [];
+                
+                deviceMarkers[deviceId].bindPopup(`<b>${deviceId}</b>`);
+                refreshDevices();
+            }
+            
+            deviceMarkers[deviceId].setLatLng(latlng);
+            
+            if (showTrajectory) {
+                trajectoryPoints[deviceId].push(latlng);
+                if (trajectoryPoints[deviceId].length > 500) {
+                    trajectoryPoints[deviceId].shift();
+                }
+                deviceTrajectories[deviceId].setLatLngs(trajectoryPoints[deviceId]);
+            }
+            
+            if (selectedDevice === deviceId) {
+                document.getElementById('posX').textContent = position.x.toFixed(2) + ' m';
+                document.getElementById('posY').textContent = position.y.toFixed(2) + ' m';
+                document.getElementById('velX').textContent = (position.vx || 0).toFixed(3) + ' m/s';
+                document.getElementById('velY').textContent = (position.vy || 0).toFixed(3) + ' m/s';
+                document.getElementById('uncertainty').textContent = (position.uncertainty || 0).toFixed(3) + ' m';
+                document.getElementById('dataSource').textContent = source || '-';
+            }
+        }
+        
+        async function refreshDevices() {
+            try {
+                const response = await fetch('/api/tracking/devices');
+                const data = await response.json();
+                
+                const list = document.getElementById('deviceList');
+                list.innerHTML = '';
+                
+                data.devices.forEach(device => {
+                    const li = document.createElement('li');
+                    li.className = 'device-item' + (selectedDevice === device.device_id ? ' active' : '');
+                    li.innerHTML = `
+                        <div class="device-name">${device.name || '未命名设备'}</div>
+                        <div class="device-id">${device.device_id}</div>
+                        <div class="device-pos">
+                            X: ${(device.position?.x || 0).toFixed(2)}m, 
+                            Y: ${(device.position?.y || 0).toFixed(2)}m
+                        </div>
+                    `;
+                    li.onclick = () => selectDevice(device.device_id);
+                    list.appendChild(li);
+                });
+            } catch (e) {
+                console.error('Failed to refresh devices:', e);
+            }
+        }
+        
+        function selectDevice(deviceId) {
+            selectedDevice = deviceId;
+            refreshDevices();
+            
+            if (deviceMarkers[deviceId]) {
+                map.panTo(deviceMarkers[deviceId].getLatLng());
+            }
+            
+            loadTrajectory(deviceId);
+        }
+        
+        async function loadTrajectory(deviceId) {
+            try {
+                const response = await fetch(`/api/tracking/trajectory/${deviceId}`);
+                const data = await response.json();
+                
+                if (deviceTrajectories[deviceId]) {
+                    const points = data.trajectory.map(t => localToLatLng(t.x, t.y));
+                    trajectoryPoints[deviceId] = points;
+                    deviceTrajectories[deviceId].setLatLngs(points);
+                }
+            } catch (e) {
+                console.error('Failed to load trajectory:', e);
+            }
+        }
+        
+        function toggleTrajectory() {
+            showTrajectory = !showTrajectory;
+            Object.values(deviceTrajectories).forEach(line => {
+                if (showTrajectory) {
+                    line.addTo(map);
+                } else {
+                    map.removeLayer(line);
+                }
+            });
+        }
+        
+        async function clearTrajectory() {
+            if (!selectedDevice) {
+                alert('请先选择一个设备');
+                return;
+            }
+            
+            if (confirm('确定要清除该设备的轨迹吗？')) {
+                try {
+                    await fetch(`/api/tracking/trajectory/${selectedDevice}`, {
+                        method: 'DELETE'
+                    });
+                    trajectoryPoints[selectedDevice] = [];
+                    deviceTrajectories[selectedDevice].setLatLngs([]);
+                } catch (e) {
+                    console.error('Failed to clear trajectory:', e);
+                }
+            }
+        }
+        
+        initBuilding();
+        refreshDevices();
+        setInterval(refreshDevices, 10000);
+    </script>
+</body>
+</html>

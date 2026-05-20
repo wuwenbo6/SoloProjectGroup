@@ -1,0 +1,212 @@
+# 数据分析平台 - Docker Compose配置
+version: '3.8'
+
+services:
+  # 主应用服务
+  app:
+    build: .
+    container_name: analytics-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BROKERS=kafka:9092
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/analytics
+    volumes:
+      - app-data:/app/data
+      - app-logs:/app/logs
+      - ./uploads:/app/uploads
+    depends_on:
+      - redis
+      - postgres
+      - kafka
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Redis缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: analytics-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: analytics-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=analytics
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper (Kafka依赖)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: analytics-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Kafka消息队列
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: analytics-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_MESSAGE_MAX_BYTES: 10485760
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: analytics-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./uploads:/var/www/uploads:ro
+    depends_on:
+      - app
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus监控
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: analytics-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - analytics-network
+
+  # Grafana可视化
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: analytics-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - analytics-network
+
+# 数据卷
+volumes:
+  app-data:
+    driver: local
+  app-logs:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  kafka-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# 网络配置
+networks:
+  analytics-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

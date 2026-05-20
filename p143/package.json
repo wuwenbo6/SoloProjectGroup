@@ -1,0 +1,39 @@
+{
+  "name": "nfc-access-control-system",
+  "version": "1.0.0",
+  "description": "NFC Access Control System with Electron, Express, and SQLite",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"nodemon src/server/index.js\" \"electron .\"",
+    "server": "node src/server/index.js",
+    "build": "electron-builder"
+  },
+  "keywords": ["nfc", "access-control", "electron", "pcsc"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "better-sqlite3": "^9.2.2",
+    "@pokusew/pcsclite": "^0.6.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.nfc.accesscontrol",
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>木纹加工模拟器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>木纹加工模拟器</h1>
+            <div class="header-actions">
+                <button id="saveBtn">保存方案</button>
+                <button id="loadBtn">加载方案</button>
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="panel">
+                    <h3>木纹生成</h3>
+                    <div class="control-group">
+                        <label>木纹类型:</label>
+                        <select id="woodType">
+                            <option value="oak">橡木</option>
+                            <option value="pine">松木</option>
+                            <option value="walnut">胡桃木</option>
+                            <option value="mahogany">桃花心木</option>
+                            <option value="maple">枫木</option>
+                            <option value="cherry">樱桃木</option>
+                            <option value="ash">白蜡木</option>
+                            <option value="beech">榉木</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>自动匹配模式:</label>
+                        <select id="autoMatchMode">
+                            <option value="none">关闭</option>
+                            <option value="furniture">家具级</option>
+                            <option value="flooring">地板级</option>
+                            <option value="craft">工艺级</option>
+                            <option value="luxury">高端定制</option>
+                        </select>
+                    </div>
+                    <button id="autoMatchBtn">自动匹配参数</button>
+                    <div class="control-group">
+                        <label>年轮密度:</label>
+                        <input type="range" id="ringDensity" min="5" max="30" value="15">
+                        <span id="ringDensityValue">15</span>
+                    </div>
+                    <div class="control-group">
+                        <label>纹理粗糙度:</label>
+                        <input type="range" id="textureRoughness" min="0" max="100" value="50">
+                        <span id="textureRoughnessValue">50</span>
+                    </div>
+                    <button id="generateWoodBtn">生成木纹</button>
+                </div>
+                
+                <div class="panel">
+                    <h3>刀路模拟</h3>
+                    <div class="control-group">
+                        <label>刀具类型:</label>
+                        <select id="toolType">
+                            <option value="flat">平底刀</option>
+                            <option value="ball">球头刀</option>
+                            <option value="v-shaped">V型刀</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>刀具直径:</label>
+                        <input type="range" id="toolDiameter" min="2" max="20" value="6">
+                        <span id="toolDiameterValue">6mm</span>
+                    </div>
+                    <div class="control-group">
+                        <label>进给速度:</label>
+                        <input type="range" id="feedRate" min="50" max="500" value="200">
+                        <span id="feedRateValue">200</span>
+                    </div>
+                    <div class="control-group">
+                        <label>切削深度:</label>
+                        <input type="range" id="cutDepth" min="0.1" max="10" value="2" step="0.1">
+                        <span id="cutDepthValue">2mm</span>
+                    </div>
+                    <button id="startToolpathBtn">开始模拟</button>
+                    <button id="stopToolpathBtn">停止模拟</button>
+                </div>
+                
+                <div class="panel">
+                    <h3>多材质受力仿真</h3>
+                    <div class="control-group">
+                        <label>材质预设:</label>
+                        <select id="materialPreset">
+                            <option value="custom">自定义</option>
+                            <option value="oak-hard">硬橡木</option>
+                            <option value="pine-soft">软松木</option>
+                            <option value="walnut-premium">优质胡桃木</option>
+                            <option value="maple-dense">致密枫木</option>
+                            <option value="bamboo">竹材</option>
+                            <option value="plywood">胶合板</option>
+                            <option value="mdf">中密度纤维板</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>弹性模量 (GPa):</label>
+                        <input type="number" id="elasticModulus" value="12" min="1" max="50" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label>泊松比:</label>
+                        <input type="number" id="poissonRatio" value="0.35" min="0.1" max="0.5" step="0.01">
+                    </div>
+                    <div class="control-group">
+                        <label>材料强度 (MPa):</label>
+                        <input type="number" id="materialStrength" value="50" min="10" max="200">
+                    </div>
+                    <div class="control-group">
+                        <label>材料密度 (kg/m³):</label>
+                        <input type="number" id="materialDensity" value="650" min="200" max="1500">
+                    </div>
+                    <div class="control-group">
+                        <label>切削力 (N):</label>
+                        <input type="number" id="cuttingForce" value="100" min="10" max="1000">
+                    </div>
+                    <div class="control-group">
+                        <label>仿真精度:</label>
+                        <select id="simulationAccuracy">
+                            <option value="low">低精度(快速)</option>
+                            <option value="medium" selected>中精度</option>
+                            <option value="high">高精度</option>
+                        </select>
+                    </div>
+                    <button id="calculateStressBtn">计算应力</button>
+                    <button id="runFullSimulationBtn">完整受力仿真</button>
+                    <div id="stressResult" class="result-box"></div>
+                </div>
+                
+                <div class="panel">
+                    <h3>深度渲染 & 3D</h3>
+                    <div class="control-group">
+                        <label>光照强度:</label>
+                        <input type="range" id="lightIntensity" min="0" max="100" value="70">
+                        <span id="lightIntensityValue">70</span>
+                    </div>
+                    <div class="control-group">
+                        <label>光源角度:</label>
+                        <input type="range" id="lightAngle" min="0" max="360" value="45">
+                        <span id="lightAngleValue">45°</span>
+                    </div>
+                    <div class="control-group">
+                        <label>环境光:</label>
+                        <input type="range" id="ambientLight" min="0" max="50" value="20">
+                        <span id="ambientLightValue">20</span>
+                    </div>
+                    <div class="control-group">
+                        <label>3D高度缩放:</label>
+                        <input type="range" id="heightScale" min="1" max="50" value="10">
+                        <span id="heightScaleValue">10</span>
+                    </div>
+                    <button id="renderDepthBtn">渲染深度图</button>
+                </div>
+            </aside>
+            
+            <main class="canvas-area">
+                <div class="canvas-container">
+                    <canvas id="woodCanvas" width="800" height="600"></canvas>
+                    <canvas id="toolpathCanvas" width="800" height="600"></canvas>
+                    <canvas id="stressCanvas" width="800" height="600"></canvas>
+                    <canvas id="depthCanvas" width="800" height="600"></canvas>
+                    <canvas id="preview3DCanvas" width="800" height="600"></canvas>
+                </div>
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="wood">木纹视图</button>
+                    <button class="tab-btn" data-tab="toolpath">刀路视图</button>
+                    <button class="tab-btn" data-tab="stress">应力视图</button>
+                    <button class="tab-btn" data-tab="depth">深度视图</button>
+                    <button class="tab-btn" data-tab="3d">3D预览</button>
+                </div>
+            </main>
+            
+            <aside class="sidebar right">
+                <div class="panel">
+                    <h3>批量生成</h3>
+                    <div class="control-group">
+                        <label>生成数量:</label>
+                        <input type="number" id="batchCount" value="5" min="2" max="50">
+                    </div>
+                    <div class="control-group">
+                        <label>参数变化幅度:</label>
+                        <select id="variationLevel">
+                            <option value="low">轻微</option>
+                            <option value="medium" selected>中等</option>
+                            <option value="high">大幅</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>批量内容:</label>
+                        <select id="batchContent">
+                            <option value="wood">仅木纹</option>
+                            <option value="full">完整方案</option>
+                        </select>
+                    </div>
+                    <button id="startBatchBtn">开始批量生成</button>
+                    <div id="batchProgress" class="result-box" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">0/0</p>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>3D预览控制</h3>
+                    <div class="control-group">
+                        <label>视角控制:</label>
+                        <button id="resetViewBtn" style="width: 48%; padding: 5px;">重置</button>
+                        <button id="autoRotateBtn" style="width: 48%; padding: 5px;">自动旋转</button>
+                    </div>
+                    <div class="control-group">
+                        <label>显示模式:</label>
+                        <select id="renderMode">
+                            <option value="solid">实体</option>
+                            <option value="wireframe">线框</option>
+                            <option value="texture">纹理</option>
+                        </select>
+                    </div>
+                    <button id="export3DObjBtn">导出 OBJ 模型</button>
+                    <button id="export3DStlBtn">导出 STL 模型</button>
+                </div>
+                
+                <div class="panel">
+                    <h3>方案管理</h3>
+                    <div class="control-group">
+                        <label>方案名称:</label>
+                        <input type="text" id="projectName" placeholder="输入方案名称">
+                    </div>
+                    <div class="control-group">
+                        <label>方案列表:</label>
+                        <div id="projectList" class="project-list"></div>
+                    </div>
+                    <button id="deleteProjectBtn">删除选中方案</button>
+                </div>
+                
+                <div class="panel">
+                    <h3>导出</h3>
+                    <button id="exportImageBtn">导出为图片</button>
+                    <button id="exportDataBtn">导出数据</button>
+                </div>
+                
+                <div class="panel">
+                    <h3>状态信息</h3>
+                    <div id="statusInfo" class="status-box">
+                        <p>准备就绪</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+    
+    <script src="woodGenerator.js"></script>
+    <script src="toolpathSimulator.js"></script>
+    <script src="stressCalculator.js"></script>
+    <script src="depthRenderer.js"></script>
+    <script src="preview3D.js"></script>
+    <script src="fileManager.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

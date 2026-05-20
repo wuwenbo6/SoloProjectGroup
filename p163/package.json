@@ -1,0 +1,23 @@
+{
+  "name": "jianpu-reader",
+  "version": "1.0.0",
+  "description": "简谱识别与播放应用",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "electron-rebuild"
+  },
+  "keywords": ["jianpu", "midi", "opencv", "electron"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  }
+}

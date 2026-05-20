@@ -1,0 +1,40 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+      file-size-threshold: 10MB
+      enabled: true
+
+spring:
+  application:
+    name: image-parser-service
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+image:
+  storage:
+    base-path: ./data/images
+    original-path: /original
+    processed-path: /processed
+    thumbnail-path: /thumbnail
+  processing:
+    threshold: 127
+    denoise-level: 3
+    max-resolution: 10000x10000
+    supported-formats: jpg,jpeg,png,bmp,tiff,tif
+
+ai:
+  model:
+    path: ./ai-model
+    timeout: 300000
+
+logging:
+  level:
+    com.ancient.book: DEBUG
+    org.springframework.web: DEBUG

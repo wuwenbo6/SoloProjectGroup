@@ -1,0 +1,20 @@
+{
+  "name": "particle-life-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "@webgpu/types": "^0.1.40",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  }
+}

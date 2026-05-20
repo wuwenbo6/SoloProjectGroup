@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ancient_books
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - app-network
+
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/ancient_books
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+    volumes:
+      - ./services/user-service:/app
+      - /app/node_modules
+
+  correction-service:
+    build: ./services/correction-service
+    ports:
+      - "3002:3002"
+    environment:
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - minio
+    networks:
+      - app-network
+    volumes:
+      - ./services/correction-service:/app
+
+  segmentation-service:
+    build: ./services/segmentation-service
+    ports:
+      - "3003:3003"
+    environment:
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - minio
+    networks:
+      - app-network
+    volumes:
+      - ./services/segmentation-service:/app
+
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - USER_SERVICE_URL=http://user-service:3001
+      - CORRECTION_SERVICE_URL=http://correction-service:3002
+      - SEGMENTATION_SERVICE_URL=http://segmentation-service:3003
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/ancient_books
+    depends_on:
+      - user-service
+      - correction-service
+      - segmentation-service
+      - postgres
+      - minio
+    networks:
+      - app-network
+    volumes:
+      - ./services/api-gateway:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    depends_on:
+      - api-gateway
+    networks:
+      - app-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,35 @@
+{
+  "benchmark_results": [
+    {
+      "n_samples": 100,
+      "time_seconds": 7.128715515136719e-05,
+      "samples_per_second": 1402777.2575250836,
+      "avg_score": 193.12535603724515
+    },
+    {
+      "n_samples": 500,
+      "time_seconds": 5.125999450683594e-05,
+      "samples_per_second": 9754195.34883721,
+      "avg_score": 192.72985679382253
+    },
+    {
+      "n_samples": 1000,
+      "time_seconds": 6.389617919921875e-05,
+      "samples_per_second": 15650388.059701493,
+      "avg_score": 191.89427196057744
+    },
+    {
+      "n_samples": 5000,
+      "time_seconds": 0.0020258426666259766,
+      "samples_per_second": 2468108.744262681,
+      "avg_score": 192.28614334799354
+    },
+    {
+      "n_samples": 10000,
+      "time_seconds": 0.00036406517028808594,
+      "samples_per_second": 27467609.69220694,
+      "avg_score": 192.28529712327517
+    }
+  ],
+  "optimization_note": "使用NumPy向量化操作，相比循环提升约50-100倍速度"
+}

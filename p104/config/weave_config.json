@@ -1,0 +1,9 @@
+{
+  "pattern": "plain",
+  "warp_count": 20,
+  "weft_count": 20,
+  "base_tension": 100.0,
+  "friction_coefficient": 0.3,
+  "simulation_time": 1.0,
+  "time_steps": 100
+}

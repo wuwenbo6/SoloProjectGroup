@@ -1,0 +1,59 @@
+{
+  "name": "midi-script-studio",
+  "version": "1.0.0",
+  "description": "MIDI Script Studio - Desktop MIDI Controller with Scripting",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "build": {
+    "appId": "com.midistudio.app",
+    "productName": "MIDI Script Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "node_modules/easymidi",
+        "to": "resources/node_modules/easymidi"
+      },
+      {
+        "from": "node_modules/better-sqlite3",
+        "to": "resources/node_modules/better-sqlite3"
+      }
+    ]
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.0",
+    "easymidi": "^3.1.0",
+    "monaco-editor": "^0.45.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8",
+    "vite-plugin-electron": "^0.28.0",
+    "vite-plugin-electron-renderer": "^0.14.5"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "lightfield-refocus-tool",
+  "version": "1.0.0",
+  "description": "Light Field Camera Refocus Tool with Electron and OpenCV",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "install": "cmake-js compile",
+    "rebuild": "cmake-js rebuild",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^7.1.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "cmake-js": "^7.3.0",
+    "electron-builder": "^24.9.1"
+  },
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "28.0.0"
+  },
+  "build": {
+    "appId": "com.lightfield.refocus",
+    "productName": "LightField Refocus Tool",
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

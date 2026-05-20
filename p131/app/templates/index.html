@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gene Sequence Alignment System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>🧬 Gene Sequence Alignment System</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/upload">Upload Sequences</a>
+            <a href="/results">Alignment Results</a>
+            <a href="/docs" target="_blank">API Docs</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h2>Welcome to the BLAST Sequence Alignment System</h2>
+            <p>A high-performance RESTful API for gene sequence alignment using optimized BLAST algorithm with BWT indexing</p>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <h3>🔍 BLAST Alignment</h3>
+                    <p>Optimized local sequence alignment supporting both DNA and Protein sequences</p>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 BWT Indexing</h3>
+                    <p>Fast pattern search using Burrows-Wheeler Transform for efficient database searching</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚡ Parallel Processing</h3>
+                    <p>Celery task queue for parallel alignment of multiple sequences</p>
+                </div>
+                <div class="feature-card">
+                    <h3>💾 MongoDB Storage</h3>
+                    <p>Scalable sequence database with persistent storage and indexing</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-actions">
+            <h2>Quick Actions</h2>
+            <div class="action-buttons">
+                <a href="/upload" class="btn btn-primary">Upload FASTA File</a>
+                <a href="/results" class="btn btn-secondary">View Alignment Results</a>
+                <a href="/docs" class="btn btn-outline" target="_blank">API Documentation</a>
+            </div>
+        </section>
+
+        <section class="stats" id="stats-section">
+            <h2>Database Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="num-sequences">-</div>
+                    <div class="stat-label">Total Sequences</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-length">-</div>
+                    <div class="stat-label">Total Base Pairs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-length">-</div>
+                    <div class="stat-label">Average Length</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Gene Sequence Alignment System. Powered by FastAPI, BLAST & MongoDB</p>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

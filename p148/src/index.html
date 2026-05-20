@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDR Radio Receiver</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      background: linear-gradient(45deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+    }
+
+    .control-panel {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 25px;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-group {
+      margin-bottom: 25px;
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #00d4ff;
+      font-size: 0.95em;
+    }
+
+    .control-group input[type="range"] {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(45deg, #00d4ff, #7b2cbf);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .control-group input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .value-display {
+      text-align: right;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #7b2cbf;
+      margin-top: 5px;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 10px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(45deg, #00d4ff, #7b2cbf);
+    }
+
+    .mode-btn:hover {
+      background: rgba(0, 212, 255, 0.3);
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.2em;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #00d4ff, #7b2cbf);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 15px;
+    }
+
+    .start-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    .start-btn.running {
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    }
+
+    .record-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 107, 107, 0.3);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid #ff6b6b;
+    }
+
+    .record-btn.recording {
+      background: #ff6b6b;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .visualization-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .viz-container {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .viz-title {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: #00d4ff;
+      margin-bottom: 15px;
+    }
+
+    canvas {
+      width: 100%;
+      border-radius: 10px;
+      background: #0a0a1a;
+    }
+
+    #spectrumCanvas {
+      height: 200px;
+    }
+
+    #waterfallCanvas {
+      height: 300px;
+    }
+
+    #iqCanvas {
+      height: 150px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #555;
+    }
+
+    .status-indicator.active {
+      background: #4ecdc4;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .error-message {
+      padding: 10px;
+      background: rgba(255, 107, 107, 0.2);
+      border: 1px solid #ff6b6b;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .frequency-input {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .frequency-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 1.1em;
+      text-align: center;
+    }
+
+    .frequency-input select {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📡 SDR Radio Receiver</h1>
+    </div>
+
+    <div class="main-grid">
+      <div class="control-panel">
+        <div class="control-group">
+          <label>解调模式</label>
+          <div class="mode-selector">
+            <button class="mode-btn active" data-mode="fm">FM</button>
+            <button class="mode-btn" data-mode="am">AM</button>
+            <button class="mode-btn" data-mode="rtty">RTTY</button>
+            <button class="mode-btn" data-mode="sstv">SSTV</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>AFC自动频率校正</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 5px; font-weight: normal;">
+              <input type="checkbox" id="afcEnabled"> 启用
+            </label>
+            <input type="number" id="afcPilot" value="1000" min="100" max="5000" step="10" style="width: 80px; padding: 5px;">
+            <span>Hz</span>
+          </div>
+          <div class="value-display" id="afcValue">偏移: 0 Hz</div>
+        </div>
+
+        <div class="control-group">
+          <label>RTTY参数</label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <label style="font-weight: normal;">Mark:</label>
+            <input type="number" id="rttyMark" value="2125" style="width: 70px; padding: 5px;">
+            <label style="font-weight: normal;">Shift:</label>
+            <input type="number" id="rttyShift" value="170" style="width: 70px; padding: 5px;">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>中心频率</label>
+          <div class="frequency-input">
+            <input type="number" id="frequencyInput" value="98" min="24" max="1700" step="0.1">
+            <select id="freqUnit">
+              <option value="1000000">MHz</option>
+              <option value="1000">kHz</option>
+            </select>
+          </div>
+          <div class="value-display" id="freqValue">98.0 MHz</div>
+        </div>
+
+        <div class="control-group">
+          <label>频率微调</label>
+          <input type="range" id="frequencySlider" min="24" max="1700" step="0.1" value="98">
+          <div class="value-display" id="freqSliderValue">98.0 MHz</div>
+        </div>
+
+        <div class="control-group">
+          <label>增益 (dB)</label>
+          <input type="range" id="gainSlider" min="0" max="50" step="1" value="40">
+          <div class="value-display" id="gainValue">40 dB</div>
+        </div>
+
+        <div class="control-group">
+          <label>滤波器带宽 (kHz)</label>
+          <input type="range" id="bandwidthSlider" min="5" max="50" step="1" value="12.5">
+          <div class="value-display" id="bandwidthValue">12.5 kHz</div>
+        </div>
+
+        <button class="start-btn" id="startBtn">▶ 开始接收</button>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button class="record-btn" id="recordBtn" style="flex: 1; margin: 0;">⏺ WAV</button>
+          <button class="record-btn" id="csvBtn" style="flex: 1; margin: 0; background: rgba(100, 200, 255, 0.3); border-color: #64c8ff;">📊 CSV</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button class="mode-btn" id="resetRtty" style="flex: 1;">🔄 RST RTTY</button>
+          <button class="mode-btn" id="resetSstv" style="flex: 1;">🔄 RST SSTV</button>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+      </div>
+
+      <div class="visualization-panel">
+        <div class="viz-container">
+          <div class="viz-title">📊 频谱图</div>
+          <canvas id="spectrumCanvas"></canvas>
+        </div>
+
+        <div class="viz-container">
+          <div class="viz-title">🌊 水瀑布图</div>
+          <canvas id="waterfallCanvas"></canvas>
+        </div>
+
+        <div class="viz-container">
+          <div class="viz-title">📈 IQ 时域波形</div>
+          <canvas id="iqCanvas"></canvas>
+        </div>
+
+        <div class="viz-container" id="rttyContainer" style="display: none;">
+          <div class="viz-title">📝 RTTY 文本</div>
+          <div id="rttyText" style="background: #0a0a1a; color: #00ff88; padding: 15px; font-family: monospace; font-size: 14px; min-height: 100px; max-height: 200px; overflow-y: auto; border-radius: 8px; white-space: pre-wrap;"></div>
+        </div>
+
+        <div class="viz-container" id="sstvContainer" style="display: none;">
+          <div class="viz-title">🖼️ SSTV 图像</div>
+          <canvas id="sstvCanvas" style="width: 100%; height: 256px; background: #1a1a1a;"></canvas>
+          <div id="sstvStatus" style="color: #888; margin-top: 10px; font-size: 12px;">等待同步...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-indicator" id="sdrStatus"></div>
+        <span>SDR 状态: <span id="sdrStatusText">未连接</span></span>
+      </div>
+      <div class="status-item">
+        <span>采样率: 240 kS/s</span>
+      </div>
+      <div class="status-item">
+        <span>音频输出: 48 kHz</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    let isRunning = false;
+    let isRecording = false;
+    let isCsvLogging = false;
+    let currentMode = 'fm';
+    let audioContext;
+    let scriptProcessor;
+    let audioBuffer = new Float32Array(65536);
+    let bufferWritePos = 0;
+    let bufferReadPos = 0;
+    let waterfallHistory = [];
+    let pendingFFTData = null;
+    let animationFrameId = null;
+    let spectrumImageData = null;
+    let sstvY = 0;
+    let rttyTextBuffer = '';
+    let sstvLineBuffer = [];
+
+    const spectrumCanvas = document.getElementById('spectrumCanvas');
+    const waterfallCanvas = document.getElementById('waterfallCanvas');
+    const iqCanvas = document.getElementById('iqCanvas');
+    const rttyContainer = document.getElementById('rttyContainer');
+    const sstvContainer = document.getElementById('sstvContainer');
+    const rttyTextEl = document.getElementById('rttyText');
+    const sstvCanvas = document.getElementById('sstvCanvas');
+    const sstvStatusEl = document.getElementById('sstvStatus');
+    
+    const spectrumCtx = spectrumCanvas.getContext('2d');
+    const waterfallCtx = waterfallCanvas.getContext('2d');
+    const iqCtx = iqCanvas.getContext('2d');
+
+    function initCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      
+      spectrumCanvas.width = spectrumCanvas.offsetWidth * dpr;
+      spectrumCanvas.height = spectrumCanvas.offsetHeight * dpr;
+      spectrumCtx.scale(dpr, dpr);
+      
+      waterfallCanvas.width = waterfallCanvas.offsetWidth * dpr;
+      waterfallCanvas.height = waterfallCanvas.offsetHeight * dpr;
+      waterfallCtx.scale(dpr, dpr);
+      
+      iqCanvas.width = iqCanvas.offsetWidth * dpr;
+      iqCanvas.height = iqCanvas.offsetHeight * dpr;
+      iqCtx.scale(dpr, dpr);
+    }
+
+    function drawSpectrumFast(fftData) {
+      const width = spectrumCanvas.width;
+      const height = spectrumCanvas.height;
+      const cssWidth = spectrumCanvas.offsetWidth;
+      const cssHeight = spectrumCanvas.offsetHeight;
+      
+      if (!spectrumImageData || spectrumImageData.width !== width) {
+        spectrumImageData = spectrumCtx.createImageData(width, height);
+      }
+      
+      const data = spectrumImageData.data;
+      const dpr = width / cssWidth;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = 10;
+        data[i + 1] = 10;
+        data[i + 2] = 26;
+        data[i + 3] = 255;
+      }
+      
+      const barWidth = Math.max(1, Math.floor(width / fftData.length));
+      
+      for (let i = 0; i < fftData.length; i++) {
+        const normalized = (fftData[i] + 100) / 100;
+        const barHeight = Math.floor(normalized * height);
+        const x = Math.floor((i / fftData.length) * width);
+        
+        const hue = (i / fftData.length) * 120 + 180;
+        const s = 1, l = 0.5;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const xVal = c * (1 - Math.abs((hue / 60) % 2 - 1));
+        const m = l - c / 2;
+        let r = 0, g = 0, b = 0;
+        
+        if (hue >= 0 && hue < 60) { r = c; g = xVal; b = 0; }
+        else if (hue >= 60 && hue < 120) { r = xVal; g = c; b = 0; }
+        else if (hue >= 120 && hue < 180) { r = 0; g = c; b = xVal; }
+        else if (hue >= 180 && hue < 240) { r = 0; g = xVal; b = c; }
+        else if (hue >= 240 && hue < 300) { r = xVal; g = 0; b = c; }
+        else { r = c; g = 0; b = xVal; }
+        
+        const rByte = Math.floor((r + m) * 255);
+        const gByte = Math.floor((g + m) * 255);
+        const bByte = Math.floor((b + m) * 255);
+        
+        for (let y = height - barHeight; y < height; y++) {
+          for (let bx = 0; bx < barWidth && x + bx < width; bx++) {
+            const idx = (y * width + x + bx) * 4;
+            data[idx] = rByte;
+            data[idx + 1] = gByte;
+            data[idx + 2] = bByte;
+            data[idx + 3] = 255;
+          }
+        }
+      }
+      
+      spectrumCtx.putImageData(spectrumImageData, 0, 0);
+    }
+
+    function drawWaterfallFast(fftData) {
+      const width = waterfallCanvas.width;
+      const height = waterfallCanvas.height;
+      const cssHeight = waterfallCanvas.offsetHeight;
+      
+      waterfallHistory.unshift(fftData);
+      if (waterfallHistory.length > 100) {
+        waterfallHistory.pop();
+      }
+      
+      const rowHeight = Math.max(1, Math.floor(height / 100));
+      const imageData = waterfallCtx.createImageData(width, rowHeight);
+      const data = imageData.data;
+      
+      waterfallCtx.drawImage(waterfallCanvas, 0, -rowHeight);
+      
+      for (let col = 0; col < fftData.length; col++) {
+        const normalized = Math.max(0, Math.min(1, (fftData[col] + 100) / 100));
+        
+        const r = Math.floor(normalized * 255);
+        const g = Math.floor(normalized * 128);
+        const b = Math.floor((1 - normalized) * 255);
+        
+        const xStart = Math.floor((col / fftData.length) * width);
+        const xEnd = Math.floor(((col + 1) / fftData.length) * width);
+        
+        for (let x = xStart; x < xEnd && x < width; x++) {
+          for (let y = 0; y < rowHeight; y++) {
+            const idx = (y * width + x) * 4;
+            data[idx] = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+          }
+        }
+      }
+      
+      waterfallCtx.putImageData(imageData, 0, height - rowHeight);
+    }
+
+    function renderLoop() {
+      if (pendingFFTData) {
+        drawSpectrumFast(pendingFFTData);
+        drawWaterfallFast(pendingFFTData);
+        pendingFFTData = null;
+      }
+      animationFrameId = requestAnimationFrame(renderLoop);
+    }
+
+    function drawIQ(iqData) {
+      const width = iqCanvas.offsetWidth;
+      const height = iqCanvas.offsetHeight;
+      
+      iqCtx.fillStyle = '#0a0a1a';
+      iqCtx.fillRect(0, 0, width, height);
+      
+      const points = Math.min(512, iqData.length / 2);
+      const step = Math.floor(iqData.length / 2 / points);
+      
+      iqCtx.beginPath();
+      iqCtx.strokeStyle = '#00d4ff';
+      iqCtx.lineWidth = 1;
+      
+      for (let i = 0; i < points; i++) {
+        const idx = i * step * 2;
+        const iValue = (iqData[idx] - 127.5) / 127.5;
+        const x = (i / points) * width;
+        const y = (iValue * height / 2) + height / 2;
+        
+        if (i === 0) {
+          iqCtx.moveTo(x, y);
+        } else {
+          iqCtx.lineTo(x, y);
+        }
+      }
+      iqCtx.stroke();
+      
+      iqCtx.beginPath();
+      iqCtx.strokeStyle = '#7b2cbf';
+      iqCtx.lineWidth = 1;
+      
+      for (let i = 0; i < points; i++) {
+        const idx = i * step * 2 + 1;
+        const qValue = (iqData[idx] - 127.5) / 127.5;
+        const x = (i / points) * width;
+        const y = (qValue * height / 2) + height / 2;
+        
+        if (i === 0) {
+          iqCtx.moveTo(x, y);
+        } else {
+          iqCtx.lineTo(x, y);
+        }
+      }
+      iqCtx.stroke();
+    }
+
+    function getBufferAvailable() {
+      return (bufferWritePos - bufferReadPos + audioBuffer.length) % audioBuffer.length;
+    }
+
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: 48000
+        });
+        
+        scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1);
+        scriptProcessor.onaudioprocess = (e) => {
+          const output = e.outputBuffer.getChannelData(0);
+          const available = getBufferAvailable();
+          
+          for (let i = 0; i < output.length; i++) {
+            if (available > i) {
+              output[i] = audioBuffer[bufferReadPos];
+              bufferReadPos = (bufferReadPos + 1) % audioBuffer.length;
+            } else {
+              output[i] = 0;
+            }
+          }
+        };
+        
+        scriptProcessor.connect(audioContext.destination);
+      }
+    }
+
+    function playAudio(audioData) {
+      if (!audioContext) return;
+      
+      const float32Data = new Float32Array(audioData);
+      
+      for (let i = 0; i < float32Data.length; i++) {
+        const nextWritePos = (bufferWritePos + 1) % audioBuffer.length;
+        if (nextWritePos !== bufferReadPos) {
+          audioBuffer[bufferWritePos] = Math.max(-1, Math.min(1, float32Data[i]));
+          bufferWritePos = nextWritePos;
+        } else {
+          bufferReadPos = (bufferReadPos + 1) % audioBuffer.length;
+          audioBuffer[bufferWritePos] = Math.max(-1, Math.min(1, float32Data[i]));
+          bufferWritePos = nextWritePos;
+        }
+      }
+    }
+
+    function getConfig() {
+      const freqUnit = parseInt(document.getElementById('freqUnit').value);
+      return {
+        frequency: parseFloat(document.getElementById('frequencyInput').value) * freqUnit,
+        gain: parseInt(document.getElementById('gainSlider').value),
+        bandwidth: parseFloat(document.getElementById('bandwidthSlider').value) * 1000,
+        mode: currentMode,
+        sampleRate: 240000,
+        afcEnabled: document.getElementById('afcEnabled').checked,
+        afcPilot: parseInt(document.getElementById('afcPilot').value),
+        rttyMark: parseInt(document.getElementById('rttyMark').value),
+        rttyShift: parseInt(document.getElementById('rttyShift').value),
+        csvLogging: isCsvLogging
+      };
+    }
+
+    async function toggleSDR() {
+      const startBtn = document.getElementById('startBtn');
+      
+      if (!isRunning) {
+        initAudio();
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+        
+        const config = getConfig();
+        const result = await ipcRenderer.invoke('start-sdr', config);
+        
+        if (result.success) {
+          isRunning = true;
+          startBtn.textContent = '⏹ 停止接收';
+          startBtn.classList.add('running');
+          document.getElementById('sdrStatus').classList.add('active');
+          document.getElementById('sdrStatusText').textContent = '运行中';
+        } else {
+          showError(result.error || '启动失败');
+        }
+      } else {
+        await ipcRenderer.invoke('stop-sdr');
+        isRunning = false;
+        bufferWritePos = 0;
+        bufferReadPos = 0;
+        audioBuffer.fill(0);
+        startBtn.textContent = '▶ 开始接收';
+        startBtn.classList.remove('running');
+        document.getElementById('sdrStatus').classList.remove('active');
+        document.getElementById('sdrStatusText').textContent = '已停止';
+      }
+    }
+
+    async function toggleRecording() {
+      const recordBtn = document.getElementById('recordBtn');
+      
+      if (!isRecording) {
+        const result = await ipcRenderer.invoke('start-recording');
+        if (result.success) {
+          isRecording = true;
+          recordBtn.textContent = '⏹ 停止录音';
+          recordBtn.classList.add('recording');
+        }
+      } else {
+        await ipcRenderer.invoke('stop-recording');
+        isRecording = false;
+        recordBtn.textContent = '⏺ WAV';
+        recordBtn.classList.remove('recording');
+      }
+    }
+
+    async function toggleCsvLogging() {
+      const csvBtn = document.getElementById('csvBtn');
+      
+      if (!isCsvLogging) {
+        const result = await ipcRenderer.invoke('start-csv-logging');
+        if (result.success) {
+          isCsvLogging = true;
+          csvBtn.textContent = '⏹ 停止 CSV';
+          csvBtn.style.background = 'rgba(100, 200, 255, 0.6)';
+          updateConfig();
+        }
+      } else {
+        await ipcRenderer.invoke('stop-csv-logging');
+        isCsvLogging = false;
+        csvBtn.textContent = '📊 CSV';
+        csvBtn.style.background = 'rgba(100, 200, 255, 0.3)';
+        updateConfig();
+      }
+    }
+
+    function initSstvCanvas() {
+      const ctx = sstvCanvas.getContext('2d');
+      sstvCanvas.width = 320;
+      sstvCanvas.height = 256;
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, 320, 256);
+    }
+
+    function drawSstvLine(data) {
+      const ctx = sstvCanvas.getContext('2d');
+      const imageData = ctx.createImageData(320, 1);
+      
+      for (let i = 0; i < 320 && i < data.length; i++) {
+        const value = Math.max(0, Math.min(255, data[i]));
+        imageData.data[i * 4] = value;
+        imageData.data[i * 4 + 1] = value;
+        imageData.data[i * 4 + 2] = value;
+        imageData.data[i * 4 + 3] = 255;
+      }
+      
+      ctx.putImageData(imageData, 0, sstvY % 256);
+      sstvY++;
+      
+      sstvStatusEl.textContent = `已接收: ${sstvY} 行`;
+    }
+
+    function appendRttyChar(char) {
+      rttyTextBuffer += char;
+      if (rttyTextBuffer.length > 10000) {
+        rttyTextBuffer = rttyTextBuffer.slice(-5000);
+      }
+      rttyTextEl.textContent = rttyTextBuffer;
+      rttyTextEl.scrollTop = rttyTextEl.scrollHeight;
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+      setTimeout(() => {
+        errorEl.classList.remove('show');
+      }, 5000);
+    }
+
+    function updateConfig() {
+      if (isRunning) {
+        ipcRenderer.invoke('update-config', getConfig());
+      }
+    }
+
+    function updateDisplays() {
+      const freqUnit = parseInt(document.getElementById('freqUnit').value);
+      const freq = parseFloat(document.getElementById('frequencyInput').value);
+      const gain = document.getElementById('gainSlider').value;
+      const bandwidth = document.getElementById('bandwidthSlider').value;
+      
+      const unitLabel = freqUnit === 1000000 ? 'MHz' : 'kHz';
+      document.getElementById('freqValue').textContent = `${freq.toFixed(1)} ${unitLabel}`;
+      document.getElementById('freqSliderValue').textContent = `${freq.toFixed(1)} ${unitLabel}`;
+      document.getElementById('gainValue').textContent = `${gain} dB`;
+      document.getElementById('bandwidthValue').textContent = `${bandwidth} kHz`;
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+        
+        rttyContainer.style.display = currentMode === 'rtty' ? 'block' : 'none';
+        sstvContainer.style.display = currentMode === 'sstv' ? 'block' : 'none';
+        
+        if (currentMode === 'sstv') {
+          initSstvCanvas();
+        }
+        
+        updateConfig();
+      });
+    });
+
+    document.getElementById('frequencyInput').addEventListener('change', (e) => {
+      document.getElementById('frequencySlider').value = e.target.value;
+      updateDisplays();
+      updateConfig();
+    });
+
+    document.getElementById('frequencySlider').addEventListener('input', (e) => {
+      document.getElementById('frequencyInput').value = e.target.value;
+      updateDisplays();
+      updateConfig();
+    });
+
+    document.getElementById('freqUnit').addEventListener('change', () => {
+      updateDisplays();
+      updateConfig();
+    });
+
+    document.getElementById('gainSlider').addEventListener('input', (e) => {
+      updateDisplays();
+      updateConfig();
+    });
+
+    document.getElementById('bandwidthSlider').addEventListener('input', (e) => {
+      updateDisplays();
+      updateConfig();
+    });
+
+    document.getElementById('startBtn').addEventListener('click', toggleSDR);
+    document.getElementById('recordBtn').addEventListener('click', toggleRecording);
+    document.getElementById('csvBtn').addEventListener('click', toggleCsvLogging);
+
+    document.getElementById('afcEnabled').addEventListener('change', updateConfig);
+    document.getElementById('afcPilot').addEventListener('change', updateConfig);
+    document.getElementById('rttyMark').addEventListener('change', updateConfig);
+    document.getElementById('rttyShift').addEventListener('change', updateConfig);
+
+    document.getElementById('resetRtty').addEventListener('click', async () => {
+      rttyTextBuffer = '';
+      rttyTextEl.textContent = '';
+      await ipcRenderer.invoke('reset-rtty');
+    });
+
+    document.getElementById('resetSstv').addEventListener('click', async () => {
+      sstvY = 0;
+      initSstvCanvas();
+      sstvStatusEl.textContent = '等待同步...';
+      await ipcRenderer.invoke('reset-sstv');
+    });
+
+    ipcRenderer.on('fft-data', (event, data) => {
+      pendingFFTData = data;
+    });
+
+    ipcRenderer.on('iq-data', (event, data) => {
+      drawIQ(data);
+    });
+
+    ipcRenderer.on('audio-data', (event, data) => {
+      playAudio(data);
+    });
+
+    ipcRenderer.on('afc-update', (event, offset) => {
+      document.getElementById('afcValue').textContent = `偏移: ${offset.toFixed(1)} Hz`;
+    });
+
+    ipcRenderer.on('rtty-char', (event, char) => {
+      appendRttyChar(char);
+    });
+
+    ipcRenderer.on('sstv-sync', (event, message) => {
+      sstvStatusEl.textContent = message;
+    });
+
+    ipcRenderer.on('sstv-line', (event, data) => {
+      drawSstvLine(data);
+    });
+
+    ipcRenderer.on('sdr-error', (event, message) => {
+      showError(message);
+    });
+
+    ipcRenderer.on('sdr-ready', () => {
+      console.log('SDR ready');
+    });
+
+    window.addEventListener('resize', initCanvas);
+    window.addEventListener('load', () => {
+      initCanvas();
+      initSstvCanvas();
+      updateDisplays();
+      if (!animationFrameId) {
+        renderLoop();
+      }
+    });
+
+    if (document.readyState === 'complete') {
+      initCanvas();
+      initSstvCanvas();
+      updateDisplays();
+      if (!animationFrameId) {
+        renderLoop();
+      }
+    }
+  </script>
+</body>
+</html>

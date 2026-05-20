@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quake Detect - 地震实时监测系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🌍</span>
+                <h1>Quake Detect</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="historyBtn">
+                    📚 历史震例
+                </button>
+                <div class="status">
+                    <span class="status-indicator" id="connectionStatus"></span>
+                    <span class="status-text" id="connectionText">连接中...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">在线设备</div>
+                        <div class="stat-value" id="deviceCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">今日检测</div>
+                        <div class="stat-value" id="detectionCount">0</div>
+                    </div>
+                    <div class="stat-card earthquake">
+                        <div class="stat-label">最近地震</div>
+                        <div class="stat-value" id="lastMagnitude">-</div>
+                        <div class="stat-sub" id="lastTime">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">最大烈度</div>
+                        <div class="stat-value" id="maxIntensity">-</div>
+                    </div>
+                </div>
+
+                <div class="events-section">
+                    <div class="section-header">
+                        <h2>📋 地震事件记录</h2>
+                        <button class="btn-small" id="exportBtn" style="display:none;">
+                            📥 导出CSV
+                        </button>
+                    </div>
+                    <div class="events-list" id="eventsList">
+                        <div class="empty-state">暂无地震事件</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-panel">
+                <div class="map-header">
+                    <h2>🗺️ 实时烈度分布</h2>
+                    <div class="replay-controls" id="replayControls" style="display:none;">
+                        <div class="replay-info" id="replayInfo">回放中...</div>
+                        <div class="replay-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <span class="progress-text" id="progressText">0%</span>
+                        </div>
+                        <button class="btn-small btn-danger" id="stopReplayBtn">
+                            ⏹ 停止回放
+                        </button>
+                    </div>
+                    <div class="legend">
+                        <span class="legend-item low">低烈度</span>
+                        <span class="legend-item medium">中烈度</span>
+                        <span class="legend-item high">高烈度</span>
+                    </div>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <div class="alert-banner" id="alertBanner" style="display: none;">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-text" id="alertText">地震检测中...</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="historyModal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📚 历史震例库</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-list" id="historyList">
+                    <div class="empty-state">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频转码调度系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .upload-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 15px;
+            color: white;
+        }
+        .task-card {
+            transition: all 0.3s ease;
+        }
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .progress {
+            height: 20px;
+        }
+        .status-badge {
+            font-size: 0.8em;
+        }
+        .upload-zone {
+            border: 3px dashed rgba(255,255,255,0.5);
+            border-radius: 10px;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-zone:hover {
+            border-color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .upload-zone.dragover {
+            border-color: white;
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">🎬 视频转码调度系统</h1>
+
+        <div class="upload-section mb-5">
+            <h3 class="text-center mb-4">上传视频进行转码</h3>
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="upload-zone text-center mb-4" id="uploadZone">
+                        <h4>拖拽视频文件到此处</h4>
+                        <p class="mb-3">或点击选择文件</p>
+                        <input type="file" id="videoFile" accept="video/*" style="display: none;">
+                        <button class="btn btn-light" onclick="document.getElementById('videoFile').click()">
+                            选择文件
+                        </button>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">输出编码格式</label>
+                            <select id="codecSelect" class="form-select">
+                                <option value="h264">H.264 - 兼容性最好</option>
+                                <option value="h265" selected>H.265 (HEVC) - 高效压缩</option>
+                                <option value="av1">AV1 - 新一代高效编码</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">输出格式</label>
+                            <select id="outputFormat" class="form-select">
+                                <option value="mp4" selected>MP4 - 通用格式</option>
+                                <option value="hls">HLS - 流媒体格式</option>
+                                <option value="dash">DASH - 自适应流媒体</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="accordion mb-3" id="advancedOptions">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#watermarkOptions">
+                                    💧 水印设置
+                                </button>
+                            </h2>
+                            <div id="watermarkOptions" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="watermarkEnabled">
+                                        <label class="form-check-label">启用水印</label>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">水印文本</label>
+                                            <input type="text" id="watermarkText" class="form-control" placeholder="例如: Copyright 2024">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">水印位置</label>
+                                            <select id="watermarkPosition" class="form-select">
+                                                <option value="bottom_right">右下角</option>
+                                                <option value="bottom_left">左下角</option>
+                                                <option value="top_right">右上角</option>
+                                                <option value="top_left">左上角</option>
+                                                <option value="center">居中</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">不透明度 (0-1)</label>
+                                            <input type="number" id="watermarkOpacity" class="form-control" value="0.8" min="0" max="1" step="0.1">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">字体大小</label>
+                                            <input type="number" id="watermarkFontSize" class="form-control" value="48" min="12">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">字体颜色</label>
+                                            <input type="text" id="watermarkFontColor" class="form-control" value="white">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cropOptions">
+                                    ✂️ 裁剪设置
+                                </button>
+                            </h2>
+                            <div id="cropOptions" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="cropEnabled">
+                                        <label class="form-check-label">启用裁剪</label>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label">X 偏移</label>
+                                            <input type="number" id="cropX" class="form-control" value="0" min="0">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Y 偏移</label>
+                                            <input type="number" id="cropY" class="form-control" value="0" min="0">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">宽度</label>
+                                            <input type="number" id="cropWidth" class="form-control" value="1920" min="0">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">高度</label>
+                                            <input type="number" id="cropHeight" class="form-control" value="1080" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bitrateOptions">
+                                    ⚡ 码率控制
+                                </button>
+                            </h2>
+                            <div id="bitrateOptions" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">码率模式</label>
+                                            <select id="bitrateMode" class="form-select">
+                                                <option value="smart" selected>智能码率（根据场景复杂度）</option>
+                                                <option value="cbr">固定码率 (CBR)</option>
+                                                <option value="vbr">可变码率 (VBR)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">目标码率 (bps)</label>
+                                            <input type="text" id="targetBitrate" class="form-control" placeholder="例如: 2000000">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#hlsOptions">
+                                    📡 HLS 配置
+                                </button>
+                            </h2>
+                            <div id="hlsOptions" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="hlsEnabled">
+                                        <label class="form-check-label">启用 HLS 打包</label>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">片段时长 (秒)</label>
+                                            <input type="number" id="hlsSegmentDuration" class="form-control" value="10">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">播放列表类型</label>
+                                            <select id="hlsPlaylistType" class="form-select">
+                                                <option value="">默认</option>
+                                                <option value="vod">VOD - 视频点播</option>
+                                                <option value="event">EVENT - 直播录制</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="hlsEncrypted">
+                                                <label class="form-check-label">启用 HLS 加密</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dashOptions">
+                                    📺 DASH 配置
+                                </button>
+                            </h2>
+                            <div id="dashOptions" class="accordion-collapse collapse" data-bs-parent="#advancedOptions">
+                                <div class="accordion-body">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="dashEnabled">
+                                        <label class="form-check-label">启用 DASH 打包</label>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">片段时长 (秒)</label>
+                                            <input type="number" id="dashSegmentDuration" class="form-control" value="10">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" id="dashAdaptationSets" checked>
+                                                <label class="form-check-label">分离音视频轨道</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="uploadStatus" class="mt-3 text-center" style="display: none;">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        <span id="uploadStatusText">正在上传...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>转码任务列表</h2>
+            <button class="btn btn-outline-primary" onclick="loadTasks()">
+                🔄 刷新
+            </button>
+        </div>
+
+        <div id="tasksContainer" class="row g-4">
+        </div>
+    </div>
+
+    <div class="modal fade" id="taskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalTitle">任务详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="taskModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '/api';
+        let selectedFile = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            setupDragAndDrop();
+            setInterval(loadTasks, 5000);
+        });
+
+        function setupDragAndDrop() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('videoFile');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('video/')) {
+                alert('请选择视频文件！');
+                return;
+            }
+            selectedFile = file;
+            uploadVideo();
+        }
+
+        async function uploadVideo() {
+            if (!selectedFile) return;
+
+            const uploadStatus = document.getElementById('uploadStatus');
+            const uploadStatusText = document.getElementById('uploadStatusText');
+            uploadStatus.style.display = 'block';
+            uploadStatusText.textContent = '正在上传...';
+
+            const formData = new FormData();
+            formData.append('video', selectedFile);
+            formData.append('codec', document.getElementById('codecSelect').value);
+            formData.append('output_format', document.getElementById('outputFormat').value);
+
+            formData.append('watermark_enabled', document.getElementById('watermarkEnabled').checked);
+            formData.append('watermark_text', document.getElementById('watermarkText').value);
+            formData.append('watermark_position', document.getElementById('watermarkPosition').value);
+            formData.append('watermark_opacity', document.getElementById('watermarkOpacity').value);
+            formData.append('watermark_scale', 0.5);
+            formData.append('watermark_padding_x', 20);
+            formData.append('watermark_padding_y', 20);
+            formData.append('watermark_font_size', document.getElementById('watermarkFontSize').value);
+            formData.append('watermark_font_color', document.getElementById('watermarkFontColor').value);
+
+            formData.append('crop_enabled', document.getElementById('cropEnabled').checked);
+            formData.append('crop_x', document.getElementById('cropX').value);
+            formData.append('crop_y', document.getElementById('cropY').value);
+            formData.append('crop_width', document.getElementById('cropWidth').value);
+            formData.append('crop_height', document.getElementById('cropHeight').value);
+
+            formData.append('bitrate_mode', document.getElementById('bitrateMode').value);
+            formData.append('target_bitrate', document.getElementById('targetBitrate').value);
+
+            formData.append('hls_enabled', document.getElementById('hlsEnabled').checked);
+            formData.append('hls_segment_duration', document.getElementById('hlsSegmentDuration').value);
+            formData.append('hls_playlist_type', document.getElementById('hlsPlaylistType').value);
+            formData.append('hls_encrypted', document.getElementById('hlsEncrypted').checked);
+
+            formData.append('dash_enabled', document.getElementById('dashEnabled').checked);
+            formData.append('dash_segment_duration', document.getElementById('dashSegmentDuration').value);
+            formData.append('dash_adaptation_sets', document.getElementById('dashAdaptationSets').checked);
+
+            try {
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    uploadStatusText.textContent = '上传成功！正在启动转码...';
+                    await startTranscoding(result.task_id);
+                    setTimeout(() => {
+                        uploadStatus.style.display = 'none';
+                        loadTasks();
+                    }, 2000);
+                } else {
+                    uploadStatusText.textContent = '上传失败: ' + result.error;
+                }
+            } catch (error) {
+                uploadStatusText.textContent = '上传失败: ' + error.message;
+            }
+        }
+
+        async function startTranscoding(taskId) {
+            try {
+                await fetch(`${API_BASE}/tasks/${taskId}/start`, {
+                    method: 'POST'
+                });
+            } catch (error) {
+                console.error('Failed to start transcoding:', error);
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks`);
+                const tasks = await response.json();
+                renderTasks(tasks);
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+            }
+        }
+
+        function renderTasks(tasks) {
+            const container = document.getElementById('tasksContainer');
+
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <h4 class="text-muted">暂无任务，上传第一个视频开始转码吧！</h4>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card task-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate" title="${task.filename}">
+                                📹 ${task.filename}
+                            </h5>
+                            <div class="mb-3">
+                                <span class="badge ${getStatusBadgeClass(task.status)} status-badge">
+                                    ${getStatusText(task.status)}
+                                </span>
+                                <span class="badge bg-secondary ms-2">${task.codec.toUpperCase()}</span>
+                                ${task.output_format ? `<span class="badge bg-info ms-2">${task.output_format.toUpperCase()}</span>` : ''}
+                            </div>
+
+                            <div class="progress mb-2">
+                                <div class="progress-bar ${getProgressBarClass(task.status)}" 
+                                     role="progressbar" 
+                                     style="width: ${task.progress}%"
+                                     aria-valuenow="${task.progress}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    ${task.progress}%
+                                </div>
+                            </div>
+
+                            <div class="small text-muted">
+                                <div>⏱️ 时长: ${formatDuration(task.duration)}</div>
+                                <div>📊 片段: ${task.segments_done || 0}/${task.segment_count || 0}</div>
+                                <div>📅 创建时间: ${new Date(task.created_at).toLocaleString('zh-CN')}</div>
+                                ${task.completed_at ? `<div>✅ 完成时间: ${new Date(task.completed_at).toLocaleString('zh-CN')}</div>` : ''}
+                            </div>
+
+                            ${task.status === 'completed' ? `
+                                <div class="mt-3">
+                                    <div class="small text-muted mb-2">
+                                        💾 文件大小: ${formatFileSize(task.file_size)} → ${formatFileSize(task.output_size)}
+                                    </div>
+                                    <button class="btn btn-success btn-sm w-100" onclick="downloadVideo('${task.id}')">
+                                        ⬇️ 下载转码结果
+                                    </button>
+                                </div>
+                            ` : ''}
+
+                            ${task.status === 'failed' ? `
+                                <div class="mt-3">
+                                    <div class="alert alert-danger small py-2">
+                                        ❌ ${task.error_msg || '转码失败'}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTask('${task.id}')">
+                                🗑️ 删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'pending': 'bg-secondary',
+                'uploading': 'bg-info',
+                'uploaded': 'bg-info',
+                'splitting': 'bg-warning',
+                'analyzing': 'bg-warning',
+                'queued': 'bg-primary',
+                'processing': 'bg-primary',
+                'merging': 'bg-warning',
+                'packaging': 'bg-warning',
+                'completed': 'bg-success',
+                'failed': 'bg-danger'
+            };
+            return classes[status] || 'bg-secondary';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'pending': '等待中',
+                'uploading': '上传中',
+                'uploaded': '已上传',
+                'splitting': '分割中',
+                'analyzing': '分析中',
+                'queued': '排队中',
+                'processing': '转码中',
+                'merging': '合并中',
+                'packaging': '打包中',
+                'completed': '已完成',
+                'failed': '失败'
+            };
+            return texts[status] || status;
+        }
+
+        function getProgressBarClass(status) {
+            if (status === 'completed') return 'bg-success';
+            if (status === 'failed') return 'bg-danger';
+            if (status === 'merging' || status === 'splitting') return 'bg-warning';
+            return 'progress-bar-striped progress-bar-animated';
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '-';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '-';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+
+        function downloadVideo(taskId) {
+            window.open(`${API_BASE}/tasks/${taskId}/download`, '_blank');
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm('确定要删除这个任务吗？')) return;
+
+            try {
+                await fetch(`${API_BASE}/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+                loadTasks();
+            } catch (error) {
+                console.error('Failed to delete task:', error);
+                alert('删除失败');
+            }
+        }
+    </script>
+</body>
+</html>

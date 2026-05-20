@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>协作解谜游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        #lobby {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .lobby-title {
+            font-size: 48px;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        input {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #4ECDC4;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            outline: none;
+            width: 250px;
+        }
+        input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        .btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4ECDC4, #44a08d);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        .rooms-list {
+            margin-top: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 400px;
+        }
+        .room-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .room-info {
+            flex: 1;
+        }
+        .room-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .room-status {
+            font-size: 14px;
+            color: #4ECDC4;
+        }
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+        #game-ui > * {
+            pointer-events: auto;
+        }
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .room-info-panel {
+            background: rgba(0,0,0,0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .room-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ECDC4;
+        }
+        .players-panel {
+            background: rgba(0,0,0,0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            min-width: 150px;
+        }
+        .player-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .player-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .voice-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .voice-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+        .voice-btn.active {
+            background: #4ECDC4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.7);
+        }
+        .voice-btn.inactive {
+            background: #ff6b6b;
+        }
+        .puzzle-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 26, 46, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #4ECDC4;
+            min-width: 400px;
+            display: none;
+            z-index: 200;
+            backdrop-filter: blur(20px);
+        }
+        .puzzle-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4ECDC4;
+        }
+        .puzzle-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+        }
+        .puzzle-close:hover {
+            color: #fff;
+        }
+        .code-lock-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .code-digit {
+            width: 50px;
+            height: 60px;
+            font-size: 32px;
+            text-align: center;
+            border: 2px solid #4ECDC4;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 200px;
+            margin: 20px auto;
+        }
+        .key {
+            padding: 15px;
+            font-size: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #4ECDC4;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .key:hover {
+            background: rgba(78, 205, 196, 0.3);
+        }
+        .hint-text {
+            color: #ffd93d;
+            text-align: center;
+            margin: 10px 0;
+            font-style: italic;
+        }
+        .jigsaw-grid {
+            display: grid;
+            gap: 2px;
+            margin: 20px auto;
+            width: 300px;
+            height: 300px;
+        }
+        .jigsaw-piece {
+            background: #4ECDC4;
+            border: 1px solid #fff;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .hidden-object-scene {
+            position: relative;
+            width: 500px;
+            height: 400px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border-radius: 10px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .hidden-item {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+        .hidden-item:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        .hidden-item.found {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .found-list {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .found-item {
+            padding: 5px 10px;
+            background: #4ECDC4;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .chat-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .chat-messages {
+            height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .chat-message {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .chat-sender {
+            font-weight: bold;
+            color: #4ECDC4;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .chat-send {
+            padding: 8px 15px;
+            background: #4ECDC4;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .interact-hint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            display: none;
+        }
+        .puzzle-list {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+        .puzzle-list-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4ECDC4;
+        }
+        .puzzle-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .puzzle-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .puzzle-item.solved {
+            color: #4ECDC4;
+            text-decoration: line-through;
+        }
+        .puzzle-item.unsolved {
+            color: #ffd93d;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="lobby">
+            <h1 class="lobby-title">🎮 协作解谜游戏</h1>
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="输入你的名字" maxlength="20">
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="createRoom()">创建房间</button>
+            </div>
+            <div class="input-group" style="display: flex; gap: 10px;">
+                <input type="text" id="roomCode" placeholder="输入房间号" maxlength="8">
+                <button class="btn btn-secondary" onclick="joinRoom()">加入房间</button>
+            </div>
+            <div class="rooms-list" id="roomsList">
+            </div>
+            <button class="btn btn-secondary" onclick="refreshRooms()">刷新房间列表</button>
+            <div style="margin-top: 30px; display: flex; gap: 10px;">
+                <a href="/puzzle-editor" class="btn btn-secondary" style="text-decoration: none; font-size: 14px;">🧩 谜题编辑器</a>
+                <a href="/leaderboard" class="btn btn-secondary" style="text-decoration: none; font-size: 14px;">🏆 排行榜</a>
+                <a href="/?vr=1" class="btn btn-secondary" style="text-decoration: none; font-size: 14px;">🥽 VR模式</a>
+            </div>
+        </div>
+
+        <div id="game-ui" style="display: none;">
+            <div class="top-bar">
+                <div class="room-info-panel">
+                    <div>房间号: <span class="room-code" id="roomCodeDisplay"></span></div>
+                    <div style="font-size: 14px; margin-top: 5px;">
+                        玩家: <span id="playerCount">0</span>/4
+                    </div>
+                </div>
+                <div class="players-panel">
+                    <div style="font-weight: bold; margin-bottom: 10px;">玩家列表</div>
+                    <div id="playersList"></div>
+                </div>
+            </div>
+
+            <div class="puzzle-list">
+                <div class="puzzle-list-title">🧩 谜题进度</div>
+                <div id="puzzleProgressList"></div>
+            </div>
+
+            <div class="chat-panel">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="输入消息..." onkeypress="handleChatKeypress(event)">
+                    <button class="chat-send" onclick="sendChatMessage()">发送</button>
+                </div>
+            </div>
+
+            <div class="voice-controls">
+                <button class="voice-btn inactive" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+            </div>
+
+            <div class="interact-hint" id="interactHint">按 E 键互动</div>
+
+            <div class="puzzle-panel" id="puzzlePanel">
+                <span class="puzzle-close" onclick="closePuzzle()">×</span>
+                <div class="puzzle-title" id="puzzleTitle">密码锁</div>
+                <div id="puzzleContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/webrtc.js"></script>
+    <script src="js/puzzles.js"></script>
+    <script src="js/vr.js"></script>
+    <script src="js/game.js"></script>
+    <script>
+        let game = null;
+        let playerName = '';
+        let roomId = '';
+        let isHost = false;
+
+        function createRoom() {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                alert('请输入你的名字');
+                return;
+            }
+            playerName = name;
+            isHost = true;
+            network.createRoom(name);
+        }
+
+        function joinRoom() {
+            const name = document.getElementById('playerName').value.trim();
+            const code = document.getElementById('roomCode').value.trim();
+            if (!name) {
+                alert('请输入你的名字');
+                return;
+            }
+            if (!code) {
+                alert('请输入房间号');
+                return;
+            }
+            playerName = name;
+            roomId = code;
+            isHost = false;
+            network.joinRoom(code, name);
+        }
+
+        function refreshRooms() {
+            network.listRooms();
+        }
+
+        function displayRooms(rooms) {
+            const list = document.getElementById('roomsList');
+            if (rooms.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #888;">暂无房间</div>';
+                return;
+            }
+            list.innerHTML = rooms.map(room => `
+                <div class="room-item">
+                    <div class="room-info">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-status">${room.current_players}/${room.max_players} 玩家 · ${room.status}</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="joinRoomById('${room.id}')" 
+                        ${room.current_players >= room.max_players ? 'disabled' : ''}>加入</button>
+                </div>
+            `).join('');
+        }
+
+        function joinRoomById(id) {
+            const name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                alert('请输入你的名字');
+                return;
+            }
+            playerName = name;
+            roomId = id;
+            isHost = false;
+            network.joinRoom(id, name);
+        }
+
+        function startGame() {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('roomCodeDisplay').textContent = roomId;
+            
+            if (!game) {
+                game = new Phaser.Game(config);
+            }
+        }
+
+        function updatePlayersList(players) {
+            const list = document.getElementById('playersList');
+            list.innerHTML = players.map(p => `
+                <div class="player-item">
+                    <div class="player-color" style="background: ${p.color}"></div>
+                    <span>${p.name}</span>
+                </div>
+            `).join('');
+            document.getElementById('playerCount').textContent = players.length;
+        }
+
+        function updatePuzzleList(puzzles) {
+            const list = document.getElementById('puzzleProgressList');
+            list.innerHTML = puzzles.map(p => `
+                <div class="puzzle-item ${p.isSolved ? 'solved' : 'unsolved'}" 
+                     onclick="openPuzzle('${p.puzzleId}')">
+                    ${p.isSolved ? '✅' : '🔒'} ${p.puzzleName}
+                </div>
+            `).join('');
+        }
+
+        function openPuzzle(puzzleId) {
+            network.getPuzzleState(puzzleId);
+        }
+
+        function closePuzzle() {
+            document.getElementById('puzzlePanel').style.display = 'none';
+        }
+
+        function handleChatKeypress(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message) {
+                network.sendChatMessage(message);
+                input.value = '';
+            }
+        }
+
+        function addChatMessage(playerName, message) {
+            const messages = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'chat-message';
+            div.innerHTML = `<span class="chat-sender">${playerName}:</span> ${message}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function toggleVoice() {
+            const btn = document.getElementById('voiceBtn');
+            if (btn.classList.contains('inactive')) {
+                webrtc.startVoiceCall();
+                btn.classList.remove('inactive');
+                btn.classList.add('active');
+            } else {
+                webrtc.endVoiceCall();
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            }
+        }
+
+        function showInteractHint(show) {
+            document.getElementById('interactHint').style.display = show ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纸张显微图像分析系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>📄 纸张显微图像分析系统</h1>
+            <p class="subtitle">污渍检测 · 类型分类 · 破损预测 · 批量推理 · 风化趋势 · 多期对比 · 维修估算 · 模型切片</p>
+        </header>
+
+        <main class="main-content">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="single">单图分析</button>
+                <button class="tab-btn" data-tab="batch">批量处理</button>
+                <button class="tab-btn" data-tab="weathering">风化趋势</button>
+                <button class="tab-btn" data-tab="compare">多期对比</button>
+                <button class="tab-btn" data-tab="repair">维修估算</button>
+                <button class="tab-btn" data-tab="slice">模型切片</button>
+            </div>
+
+            <div id="single" class="tab-content active">
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📷</div>
+                        <h3>拖拽图像到此处</h3>
+                        <p>或点击选择文件</p>
+                        <p class="file-formats">支持: JPG, PNG, BMP, TIFF</p>
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                    </div>
+                </div>
+
+                <div class="preview-section" id="previewSection" style="display: none;">
+                    <div class="image-preview">
+                        <h3>图像预览</h3>
+                        <img id="previewImage" src="" alt="预览图">
+                        <p id="fileName" class="file-name"></p>
+                    </div>
+
+                    <div class="actions">
+                        <button id="detectBtn" class="action-btn primary">
+                            <span>🔍</span> 污渍检测
+                        </button>
+                        <button id="classifyBtn" class="action-btn secondary">
+                            <span>📋</span> 类型分类
+                        </button>
+                        <button id="predictBtn" class="action-btn warning">
+                            <span>📊</span> 破损预测
+                        </button>
+                        <button id="weatheringBtn" class="action-btn info">
+                            <span>🌦</span> 风化趋势
+                        </button>
+                        <button id="repairBtn" class="action-btn accent">
+                            <span>🔧</span> 维修估算
+                        </button>
+                        <button id="sliceBtn" class="action-btn purple">
+                            <span>🧩</span> 模型切片
+                        </button>
+                        <button id="analyzeAllBtn" class="action-btn success">
+                            <span>🚀</span> 完整分析
+                        </button>
+                    </div>
+                </div>
+
+                <div class="results-section" id="resultsSection" style="display: none;">
+                    <div id="detectionResult" class="result-card" style="display: none;">
+                        <h3>🔍 污渍检测结果</h3>
+                        <div class="result-summary">
+                            <span class="badge stain-count">检测到 <strong id="stainCount">0</strong> 处污渍</span>
+                            <span class="badge time">耗时 <strong id="detectionTime">0</strong> 秒</span>
+                        </div>
+                        <div id="stainsList" class="stains-list"></div>
+                    </div>
+
+                    <div id="classificationResult" class="result-card" style="display: none;">
+                        <h3>📋 纸张类型分类</h3>
+                        <div class="classification-main">
+                            <div class="paper-type">
+                                <span class="type-label">识别结果:</span>
+                                <span id="paperType" class="type-value">-</span>
+                            </div>
+                            <div class="confidence">
+                                <span class="confidence-label">置信度:</span>
+                                <div class="confidence-bar">
+                                    <div id="confidenceBar" class="confidence-fill" style="width: 0%"></div>
+                                </div>
+                                <span id="confidenceValue" class="confidence-value">0%</span>
+                            </div>
+                            <div class="sub-type">
+                                <span class="sub-label">子类型:</span>
+                                <span id="subType" class="sub-value">-</span>
+                            </div>
+                        </div>
+                        <div class="properties">
+                            <h4>纸张属性</h4>
+                            <div id="propertiesList" class="properties-grid"></div>
+                        </div>
+                    </div>
+
+                    <div id="predictionResult" class="result-card" style="display: none;">
+                        <h3>📊 破损预测</h3>
+                        <div class="health-overview">
+                            <div class="health-score">
+                                <svg class="health-circle" viewBox="0 0 100 100">
+                                    <circle class="health-bg" cx="50" cy="50" r="45"></circle>
+                                    <circle id="healthRing" class="health-ring" cx="50" cy="50" r="45" 
+                                            stroke-dasharray="283" stroke-dashoffset="283"></circle>
+                                </svg>
+                                <div class="health-value">
+                                    <span id="healthScore">0</span>%
+                                    <small>整体健康度</small>
+                                </div>
+                            </div>
+                            <div id="riskLevel" class="risk-badge">风险等级: -</div>
+                        </div>
+                        <div id="predictionsList" class="predictions-list"></div>
+                    </div>
+
+                    <div id="weatheringResult" class="result-card" style="display: none;">
+                        <h3>🌦 风化趋势预测</h3>
+                        <div class="result-summary">
+                            <span class="badge info">当前健康度: <strong id="currentHealth">0</strong>%</span>
+                            <span class="badge time">预测周期: <strong id="predictionMonths">0</strong> 个月</span>
+                        </div>
+                        <div id="trendChart" class="trend-chart"></div>
+                        <h4 style="margin-top: 20px;">关键节点</h4>
+                        <div id="criticalPoints" class="critical-points"></div>
+                        <h4 style="margin-top: 20px;">养护建议</h4>
+                        <div id="recommendations" class="recommendations-list"></div>
+                    </div>
+
+                    <div id="repairResult" class="result-card" style="display: none;">
+                        <h3>🔧 维修量估算</h3>
+                        <div class="repair-summary">
+                            <div class="repair-stat">
+                                <span class="repair-label">预估费用</span>
+                                <span class="repair-value" id="totalCost">¥0</span>
+                            </div>
+                            <div class="repair-stat">
+                                <span class="repair-label">预估工时</span>
+                                <span class="repair-value" id="totalTime">0</span>
+                            </div>
+                        </div>
+                        <div class="priority-summary" id="prioritySummary"></div>
+                        <h4 style="margin-top: 20px;">维修项目</h4>
+                        <div id="repairItemsList" class="repair-items-list"></div>
+                        <h4 style="margin-top: 20px;">所需材料</h4>
+                        <div id="materialsList" class="materials-list"></div>
+                    </div>
+
+                    <div id="sliceResult" class="result-card" style="display: none;">
+                        <h3>🧩 模型切片分析</h3>
+                        <div class="slice-summary">
+                            <span class="badge info">网格: <strong id="gridSize">0×0</strong></span>
+                            <span class="badge" id="sliceOverallRisk">整体风险: -</span>
+                        </div>
+                        <div id="heatmapContainer" class="heatmap-container"></div>
+                        <h4 style="margin-top: 20px;">高风险区域</h4>
+                        <div id="highRiskAreas" class="high-risk-areas"></div>
+                        <div id="sliceStats" class="slice-stats"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="batch" class="tab-content">
+                <div class="batch-upload-section">
+                    <div class="upload-area" id="batchUploadArea">
+                        <div class="upload-icon">📂</div>
+                        <h3>批量上传图像</h3>
+                        <p>拖拽多个文件到此处，或点击选择</p>
+                        <p class="file-formats">支持: JPG, PNG, BMP, TIFF</p>
+                        <input type="file" id="batchFileInput" accept="image/*" multiple hidden>
+                    </div>
+                    
+                    <div id="batchFilesList" class="batch-files-list" style="display: none;">
+                        <h3>已选择文件 (<span id="selectedCount">0</span>)</h3>
+                        <div id="filesContainer" class="files-container"></div>
+                        <button id="startBatchBtn" class="batch-btn primary">
+                            <span>⚡</span> 开始批量分析
+                        </button>
+                    </div>
+                </div>
+
+                <div id="batchResultsSection" class="batch-results" style="display: none;">
+                    <div class="batch-summary">
+                        <h3>批量分析结果</h3>
+                        <div class="summary-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">总文件数</span>
+                                <span id="totalFiles" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item success">
+                                <span class="stat-label">成功</span>
+                                <span id="successCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item error">
+                                <span class="stat-label">失败</span>
+                                <span id="failCount" class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">总耗时</span>
+                                <span id="batchTime" class="stat-value">0s</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="batchResultsList" class="batch-results-list"></div>
+                </div>
+            </div>
+
+            <div id="weathering" class="tab-content">
+                <div class="upload-section">
+                    <div class="upload-area" id="weatheringUploadArea">
+                        <div class="upload-icon">🌦</div>
+                        <h3>上传图像进行风化趋势预测</h3>
+                        <p>分析纸张未来的健康度变化趋势</p>
+                        <p class="file-formats">支持: JPG, PNG, BMP, TIFF</p>
+                        <input type="file" id="weatheringFileInput" accept="image/*" hidden>
+                    </div>
+                </div>
+                <div class="analysis-options" id="weatheringOptions" style="display: none; margin-top: 20px;">
+                    <label>预测周期: 
+                        <select id="weatheringMonths">
+                            <option value="6">6个月</option>
+                            <option value="12">12个月</option>
+                            <option value="24" selected>24个月</option>
+                            <option value="36">36个月</option>
+                            <option value="60">60个月</option>
+                        </select>
+                    </label>
+                    <button id="startWeatheringBtn" class="action-btn info" style="margin-top: 15px;">
+                        <span>🌦</span> 开始预测
+                    </button>
+                </div>
+                <div class="results-section" id="weatheringTabResults" style="display: none;"></div>
+            </div>
+
+            <div id="compare" class="tab-content">
+                <div class="compare-upload-section">
+                    <h3>选择两张图像进行对比</h3>
+                    <div class="compare-uploads">
+                        <div class="compare-upload">
+                            <h4>早期图像</h4>
+                            <div class="upload-area small" id="compareUploadArea1">
+                                <div class="upload-icon">📷</div>
+                                <p>点击或拖拽上传</p>
+                                <input type="file" id="compareFileInput1" accept="image/*" hidden>
+                            </div>
+                            <div id="comparePreview1" class="compare-preview" style="display: none;"></div>
+                        </div>
+                        <div class="compare-upload">
+                            <h4>后期图像</h4>
+                            <div class="upload-area small" id="compareUploadArea2">
+                                <div class="upload-icon">📷</div>
+                                <p>点击或拖拽上传</p>
+                                <input type="file" id="compareFileInput2" accept="image/*" hidden>
+                            </div>
+                            <div id="comparePreview2" class="compare-preview" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <div class="analysis-options" id="compareOptions" style="display: none; margin-top: 20px;">
+                        <label>间隔天数 (可选): 
+                            <input type="number" id="timeDiffDays" min="1" max="3650" placeholder="输入天数">
+                        </label>
+                        <button id="startCompareBtn" class="action-btn info" style="margin-top: 15px;">
+                            <span>📊</span> 开始对比
+                        </button>
+                    </div>
+                </div>
+                <div class="results-section" id="compareTabResults" style="display: none;"></div>
+            </div>
+
+            <div id="repair" class="tab-content">
+                <div class="upload-section">
+                    <div class="upload-area" id="repairUploadArea">
+                        <div class="upload-icon">🔧</div>
+                        <h3>上传图像进行维修量估算</h3>
+                        <p>根据污渍和破损情况预估维修费用和工时</p>
+                        <p class="file-formats">支持: JPG, PNG, BMP, TIFF</p>
+                        <input type="file" id="repairFileInput" accept="image/*" hidden>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="startRepairBtn" class="action-btn accent" style="display: none;">
+                        <span>🔧</span> 开始估算
+                    </button>
+                </div>
+                <div class="results-section" id="repairTabResults" style="display: none;"></div>
+            </div>
+
+            <div id="slice" class="tab-content">
+                <div class="upload-section">
+                    <div class="upload-area" id="sliceUploadArea">
+                        <div class="upload-icon">🧩</div>
+                        <h3>上传图像进行模型切片分析</h3>
+                        <p>将图像网格化，分析各区域的健康状况</p>
+                        <p class="file-formats">支持: JPG, PNG, BMP, TIFF</p>
+                        <input type="file" id="sliceFileInput" accept="image/*" hidden>
+                    </div>
+                </div>
+                <div class="analysis-options" id="sliceOptions" style="display: none; margin-top: 20px;">
+                    <label>网格行数: 
+                        <select id="sliceRows">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                            <option value="10">10</option>
+                        </select>
+                    </label>
+                    <label style="margin-left: 20px;">网格列数: 
+                        <select id="sliceCols">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="8">8</option>
+                            <option value="10">10</option>
+                        </select>
+                    </label>
+                    <button id="startSliceBtn" class="action-btn purple" style="margin-top: 15px;">
+                        <span>🧩</span> 开始分析
+                    </button>
+                </div>
+                <div class="results-section" id="sliceTabResults" style="display: none;"></div>
+            </div>
+        </main>
+
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">处理中...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

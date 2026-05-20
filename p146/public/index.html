@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISC-V RV32I 仿真器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; color: #d4d4d4; }
+        .container { display: grid; grid-template-columns: 1fr 300px 300px; height: calc(100vh - 24px); gap: 1px; background: #333; }
+        .panel { background: #252526; display: flex; flex-direction: column; }
+        .panel-header { padding: 8px 12px; background: #2d2d30; border-bottom: 1px solid #3e3e42; font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .panel-content { flex: 1; overflow: auto; }
+        
+        #editor { height: 100%; }
+        .controls { display: flex; gap: 5px; padding: 8px; background: #2d2d30; border-bottom: 1px solid #3e3e42; }
+        button { padding: 6px 12px; background: #0e639c; border: none; color: white; cursor: pointer; border-radius: 3px; font-size: 12px; }
+        button:hover { background: #1177bb; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        button.danger { background: #c42b1c; }
+        button.danger:hover { background: #e83b2c; }
+        button.success { background: #16825d; }
+        button.success:hover { background: #1a996e; }
+        
+        .reg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; padding: 8px; font-size: 11px; }
+        .reg-item { display: flex; justify-content: space-between; padding: 4px 6px; background: #1e1e1e; border-radius: 3px; }
+        .reg-name { color: #569cd6; font-family: monospace; }
+        .reg-value { color: #b5cea8; font-family: monospace; }
+
+        .memory-view { padding: 8px; font-family: monospace; font-size: 11px; }
+        .mem-row { display: flex; margin-bottom: 2px; }
+        .mem-addr { color: #569cd6; width: 70px; }
+        .mem-hex { color: #b5cea8; flex: 1; letter-spacing: 1px; }
+        .mem-ascii { color: #9cdcfe; }
+
+        .breakpoints-list, .watchpoints-list { padding: 8px; }
+        .bp-item, .wp-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: #1e1e1e; margin-bottom: 4px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+        .remove-btn { background: #c42b1c; padding: 3px 6px; font-size: 10px; }
+
+        .input-group { display: flex; gap: 5px; padding: 8px; }
+        input { flex: 1; padding: 6px 8px; background: #3c3c3c; border: 1px solid #555; color: #d4d4d4; border-radius: 3px; font-size: 12px; }
+
+        .status-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 4px 12px; background: #007acc; color: white; font-size: 12px; }
+
+        .waveform-panel { grid-column: 1 / -1; height: 250px; min-height: 200px; }
+        .waveform-canvas { width: 100%; height: 100%; background: #1e1e1e; }
+        .waveform-controls { display: flex; gap: 5px; padding: 5px 8px; background: #2d2d30; border-bottom: 1px solid #3e3e42; }
+        .waveform-legend { display: flex; gap: 15px; padding: 5px 8px; background: #2d2d30; border-top: 1px solid #3e3e42; font-size: 11px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 2px; }
+
+        .uart-terminal { background: #0a0a0a; color: #00ff00; font-family: monospace; font-size: 12px; padding: 8px; height: 150px; overflow-y: auto; white-space: pre-wrap; }
+        .uart-input { display: flex; gap: 5px; padding: 8px; }
+        .uart-input input { flex: 1; }
+
+        .tabs { display: flex; background: #2d2d30; border-bottom: 1px solid #3e3e42; }
+        .tab { padding: 6px 12px; cursor: pointer; font-size: 12px; border-right: 1px solid #3e3e42; }
+        .tab.active { background: #1e1e1e; border-bottom: 2px solid #007acc; }
+        .tab:hover { background: #2a2d2e; }
+        .tab-content { display: none; height: 100%; }
+        .tab-content.active { display: block; }
+
+        .csr-panel { padding: 8px; font-size: 11px; }
+        .csr-item { display: flex; justify-content: space-between; padding: 3px 6px; background: #1e1e1e; margin-bottom: 2px; border-radius: 3px; }
+        .csr-name { color: #569cd6; font-family: monospace; }
+        .csr-value { color: #ce9178; font-family: monospace; }
+
+        .editor-toolbar { display: flex; gap: 5px; padding: 5px 8px; background: #2d2d30; border-bottom: 1px solid #3e3e42; }
+
+        .ace_gutter-layer { width: 50px !important; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/mode-assembly_x86.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/theme-monokai.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <div class="panel-header">
+                <span>RISC-V 汇编编辑器</span>
+                <div>
+                    <button id="loadElfBtn" style="margin-right:5px">加载ELF</button>
+                    <button id="assembleBtn" class="success">汇编</button>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="stepBtn">单步</button>
+                <button id="runBtn">运行</button>
+                <button id="pauseBtn">暂停</button>
+                <button id="resetBtn" class="danger">复位</button>
+            </div>
+            <div id="editor"></div>
+            <input type="file" id="elfFile" style="display:none" accept=".elf,.o,.out">
+        </div>
+
+        <div class="panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="registers">寄存器</div>
+                <div class="tab" data-tab="csr">CSR</div>
+                <div class="tab" data-tab="breakpoints">断点</div>
+            </div>
+            <div class="tab-content active" id="tab-registers">
+                <div class="reg-grid" id="registersGrid"></div>
+            </div>
+            <div class="tab-content" id="tab-csr">
+                <div class="csr-panel" id="csrPanel"></div>
+            </div>
+            <div class="tab-content" id="tab-breakpoints">
+                <div class="input-group">
+                    <input type="text" id="bpAddress" placeholder="地址 (如 0x10004)">
+                    <button id="addBpBtn">添加</button>
+                </div>
+                <div class="breakpoints-list" id="breakpointsList"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="memory">内存</div>
+                <div class="tab" data-tab="uart">UART</div>
+                <div class="tab" data-tab="watchpoints">监视点</div>
+            </div>
+            <div class="tab-content active" id="tab-memory">
+                <div class="input-group">
+                    <input type="text" id="memAddress" placeholder="起始地址" value="0x10000">
+                    <button id="viewMemBtn">查看</button>
+                </div>
+                <div class="memory-view" id="memoryView"></div>
+            </div>
+            <div class="tab-content" id="tab-uart">
+                <div class="uart-terminal" id="uartTerminal"></div>
+                <div class="uart-input">
+                    <input type="text" id="uartInput" placeholder="输入字符...">
+                    <button id="uartSendBtn">发送</button>
+                    <button id="uartClearBtn">清除</button>
+                </div>
+            </div>
+            <div class="tab-content" id="tab-watchpoints">
+                <div class="input-group">
+                    <input type="text" id="wpAddress" placeholder="地址">
+                    <button id="addWpBtn">添加</button>
+                </div>
+                <div class="watchpoints-list" id="watchpointsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel waveform-panel">
+        <div class="waveform-controls">
+            <button id="waveformEnable">开始记录</button>
+            <button id="waveformDisable">停止记录</button>
+            <button id="waveformRefresh">刷新波形</button>
+            <button id="waveformDownload" class="success">下载FST</button>
+            <span style="margin-left: 10px; font-size: 12px; color: #888;">波形记录: <span id="waveformStatus">关闭</span></span>
+        </div>
+        <canvas id="waveformCanvas" class="waveform-canvas"></canvas>
+        <div class="waveform-legend" id="waveformLegend"></div>
+    </div>
+
+    <div class="status-bar" id="statusBar">就绪</div>
+
+    <script>
+        let ws;
+        let sessionId;
+        let breakpoints = new Set();
+        let watchpoints = [];
+        let editor;
+        let waveformEnabled = false;
+        let uartBuffer = '';
+
+        function init() {
+            editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.session.setMode("ace/mode/assembly_x86");
+            editor.setValue(`# RISC-V RV32I 外设和波形测试程序
+# ==============================================
+
+# 初始化: 启用中断和设置UART
+    addi x1, x0, 0x8        # MSTATUS.MIE位
+    csrrs x0, mstatus, x1   # 启用全局中断
+    
+    addi x1, x0, 0x80       # MIE.MTIE位
+    csrrs x0, mie, x1       # 启用定时器中断
+
+# 设置定时器比较值 (0x40010004 = mtimecmp)
+    addi x2, x0, 0x40010000  # CLINT基地址
+    addi x3, x0, 1000         # 比较值
+    sw x3, 16(x2)             # mtimecmp = 1000
+
+# UART 输出字符串 (0x40000000 = UART)
+    addi x2, x0, 0x40000000   # UART基地址
+    addi x3, x0, msg           # 字符串地址
+    
+uart_loop:
+    lb x4, 0(x3)               # 加载字符
+    beq x4, x0, main_loop      # 字符串结束
+    sb x4, 0(x2)               # 发送到UART
+    addi x3, x3, 1             # 下一个字符
+    j uart_loop
+
+# 主循环 - 执行一些计算以产生波形变化
+main_loop:
+    addi x5, x0, 0             # 计数器复位
+    
+count_loop:
+    addi x5, x5, 1             # x5++
+    andi x6, x5, 0xff          # 取低8位
+    
+    # 检查是否有中断挂起 (模拟工作)
+    addi x7, x0, 1000
+    bne x5, x7, count_loop
+    
+    j main_loop
+
+# 字符串数据
+msg:
+    .string "Hello RISC-V!\\n"
+    .align 4
+`, -1);
+
+            editor.session.setOption("firstLineNumber", 0);
+            editor.renderer.setShowGutter(true);
+            editor.session.on('change', saveSession);
+
+            connectWebSocket();
+            setupEventListeners();
+            drawEmptyWaveform();
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}`);
+            
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'init' }));
+                updateStatus('已连接');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onclose = () => {
+                updateStatus('连接断开，正在重连...');
+                setTimeout(connectWebSocket, 2000);
+            };
+        }
+
+        function handleMessage(data) {
+            switch (data.type) {
+                case 'init':
+                    sessionId = data.sessionId;
+                    updateRegisters({});
+                    break;
+                case 'step-result':
+                case 'state-update':
+                    updateRegisters(data.registers || {});
+                    document.getElementById('pcValue').textContent = '0x' + (data.pc || 0).toString(16).padStart(8, '0');
+                    if (data.csr) updateCSR(data.csr);
+                    break;
+                case 'registers':
+                    updateRegisters(data.registers);
+                    document.getElementById('pcValue').textContent = '0x' + data.pc.toString(16).padStart(8, '0');
+                    break;
+                case 'memory-data':
+                    displayMemory(data.address, data.data);
+                    break;
+                case 'assembled':
+                    if (data.errors && data.errors.length > 0) {
+                        updateStatus('汇编错误: ' + data.errors.map(e => `行${e.line}: ${e.message}`).join(', '));
+                    } else {
+                        updateStatus(`汇编成功，共 ${(data.instructions || []).length} 条指令`);
+                    }
+                    break;
+                case 'uart-tx':
+                    uartBuffer += String.fromCharCode(data.byte);
+                    document.getElementById('uartTerminal').textContent = uartBuffer;
+                    document.getElementById('uartTerminal').scrollTop = document.getElementById('uartTerminal').scrollHeight;
+                    break;
+                case 'waveform-data':
+                    drawWaveform(data);
+                    break;
+                case 'waveform-download':
+                    downloadFST(data.data);
+                    break;
+                case 'error':
+                    updateStatus('错误: ' + data.message);
+                    break;
+            }
+        }
+
+        function updateRegisters(regs) {
+            const grid = document.getElementById('registersGrid');
+            const regNames = ['zero', 'ra', 'sp', 'gp', 'tp', 't0', 't1', 't2', 's0', 's1', 'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11', 't3', 't4', 't5', 't6'];
+            
+            let html = '<div class="reg-item"><span class="reg-name">pc</span><span class="reg-value" id="pcValue">0x00000000</span></div>';
+            html += regNames.map(name => {
+                const value = regs[name] || 0;
+                return `<div class="reg-item"><span class="reg-name">${name.padEnd(4)}</span><span class="reg-value">0x${value.toString(16).padStart(8, '0')}</span></div>`;
+            }).join('');
+            grid.innerHTML = html;
+        }
+
+        function updateCSR(csr) {
+            const panel = document.getElementById('csrPanel');
+            const items = [
+                { name: 'mstatus', value: csr.mstatus || 0 },
+                { name: 'mie', value: csr.mie || 0 },
+                { name: 'mtvec', value: csr.mtvec || 0 },
+                { name: 'mscratch', value: csr.mscratch || 0 },
+                { name: 'mepc', value: csr.mepc || 0 },
+                { name: 'mcause', value: csr.mcause || 0 }
+            ];
+            panel.innerHTML = items.map(item => 
+                `<div class="csr-item"><span class="csr-name">${item.name}</span><span class="csr-value">0x${item.value.toString(16).padStart(8, '0')}</span></div>`
+            ).join('');
+        }
+
+        function displayMemory(address, data) {
+            const view = document.getElementById('memoryView');
+            let html = '';
+            for (let i = 0; i < data.length; i += 16) {
+                const addr = address + i;
+                const chunk = data.slice(i, i + 16);
+                const hex = chunk.map(b => b.toString(16).padStart(2, '0')).join(' ');
+                const ascii = chunk.map(b => (b >= 32 && b < 127) ? String.fromCharCode(b) : '.').join('');
+                html += `<div class="mem-row"><span class="mem-addr">0x${addr.toString(16).padStart(8, '0')}</span><span class="mem-hex">${hex.padEnd(47)}</span><span class="mem-ascii">${ascii}</span></div>`;
+            }
+            view.innerHTML = html;
+        }
+
+        function drawEmptyWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#666';
+            ctx.font = '14px monospace';
+            ctx.fillText('点击"开始记录"以启用波形采集...', 10, canvas.height / 2);
+        }
+
+        function drawWaveform(data) {
+            const canvas = document.getElementById('waveformCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!data.changes || data.changes.length === 0) {
+                ctx.fillStyle = '#666';
+                ctx.font = '12px monospace';
+                ctx.fillText('暂无波形数据，请先点击"开始记录"并执行指令...', 10, 20);
+                return;
+            }
+
+            const colors = {
+                pc: '#569cd6',
+                instruction: '#b5cea8',
+                uart_tx: '#ce9178',
+                timer_irq: '#dcdcaa',
+                irq_pending: '#d7ba7d'
+            };
+
+            const signals = ['pc', 'instruction', 'uart_tx', 'timer_irq', 'irq_pending'];
+            const signalHeight = (canvas.height - 40) / signals.length;
+            const timeScale = Math.max(1, (canvas.width - 150) / Math.max(data.maxTime || 100, 100));
+
+            const signalValues = {};
+            signals.forEach(sig => signalValues[sig] = []);
+
+            data.changes.forEach(change => {
+                for (const [sigName, sigInfo] of Object.entries(data.signals || {})) {
+                    if (sigInfo.id === change.id && signals.includes(sigName)) {
+                        signalValues[sigName].push({ time: change.time, value: change.value });
+                        break;
+                    }
+                }
+            });
+
+            signals.forEach((sig, idx) => {
+                const yBase = 30 + idx * signalHeight + signalHeight / 2;
+                
+                ctx.fillStyle = colors[sig] || '#888';
+                ctx.font = '11px monospace';
+                ctx.fillText(sig.padEnd(12), 5, yBase + 4);
+
+                ctx.beginPath();
+                ctx.strokeStyle = colors[sig] || '#888';
+                ctx.lineWidth = 1.5;
+
+                const values = signalValues[sig];
+                if (values.length > 0) {
+                    if (['uart_tx', 'timer_irq', 'irq_pending'].includes(sig)) {
+                        let lastVal = 0;
+                        let lastTime = 0;
+                        
+                        ctx.moveTo(120, yBase + 15);
+                        
+                        values.forEach(({ time, value }) => {
+                            const x1 = 120 + lastTime * timeScale;
+                            const x2 = 120 + time * timeScale;
+                            
+                            const y1 = yBase + (lastVal ? -10 : 10);
+                            const y2 = yBase + (value ? -10 : 10);
+                            
+                            ctx.lineTo(x1, y1);
+                            if (lastVal !== value) {
+                                ctx.lineTo(x1, y2);
+                            }
+                            ctx.lineTo(x2, y2);
+                            
+                            lastVal = value;
+                            lastTime = time;
+                        });
+                    } else {
+                        let lastVal = 0;
+                        let lastTime = 0;
+                        
+                        ctx.moveTo(120, yBase);
+                        
+                        values.forEach(({ time, value }) => {
+                            const x1 = 120 + lastTime * timeScale;
+                            const x2 = 120 + time * timeScale;
+                            
+                            const normalized = Math.abs(value - lastVal) > 0 ? 1 : 0;
+                            const y1 = yBase - (normalized * 12);
+                            const y2 = yBase - (normalized * 12);
+                            
+                            ctx.lineTo(x1, y1);
+                            ctx.lineTo(x2, y2);
+                            
+                            lastVal = value;
+                            lastTime = time;
+                        });
+                    }
+                }
+                ctx.stroke();
+            });
+
+            const legend = document.getElementById('waveformLegend');
+            legend.innerHTML = signals.map(sig => 
+                `<div class="legend-item"><div class="legend-color" style="background: ${colors[sig] || '#888'}"></div>${sig}</div>`
+            ).join('');
+        }
+
+        function downloadFST(base64Data) {
+            const binary = atob(base64Data);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'waveform.fst';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+                });
+            });
+
+            document.getElementById('stepBtn').onclick = () => ws.send(JSON.stringify({ type: 'step' }));
+            document.getElementById('runBtn').onclick = () => ws.send(JSON.stringify({ type: 'run' }));
+            document.getElementById('pauseBtn').onclick = () => ws.send(JSON.stringify({ type: 'pause' }));
+            document.getElementById('resetBtn').onclick = () => ws.send(JSON.stringify({ type: 'reset' }));
+            document.getElementById('assembleBtn').onclick = () => {
+                ws.send(JSON.stringify({ type: 'assemble', code: editor.getValue() }));
+            };
+
+            document.getElementById('addBpBtn').onclick = () => {
+                const addr = parseInt(document.getElementById('bpAddress').value);
+                if (!isNaN(addr)) {
+                    breakpoints.add(addr);
+                    ws.send(JSON.stringify({ type: 'set-breakpoint', address: addr }));
+                    updateBreakpointsList();
+                }
+            };
+
+            document.getElementById('addWpBtn').onclick = () => {
+                const addr = parseInt(document.getElementById('wpAddress').value);
+                if (!isNaN(addr)) {
+                    watchpoints.push({ address: addr, type: 'read-write' });
+                    ws.send(JSON.stringify({ type: 'set-watchpoint', address: addr, type: 'read-write' }));
+                    updateWatchpointsList();
+                }
+            };
+
+            document.getElementById('viewMemBtn').onclick = () => {
+                const addr = parseInt(document.getElementById('memAddress').value) || 0x10000;
+                ws.send(JSON.stringify({ type: 'get-memory', address: addr, length: 256 }));
+            };
+
+            document.getElementById('loadElfBtn').onclick = () => document.getElementById('elfFile').click();
+            document.getElementById('elfFile').onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const bytes = new Uint8Array(ev.target.result);
+                        const base64 = btoa(String.fromCharCode.apply(null, bytes));
+                        ws.send(JSON.stringify({ type: 'load-elf', elfData: base64 }));
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            };
+
+            document.getElementById('waveformEnable').onclick = () => {
+                ws.send(JSON.stringify({ type: 'waveform-enable' }));
+                waveformEnabled = true;
+                document.getElementById('waveformStatus').textContent = '运行中';
+                document.getElementById('waveformStatus').style.color = '#4ec9b0';
+            };
+
+            document.getElementById('waveformDisable').onclick = () => {
+                ws.send(JSON.stringify({ type: 'waveform-disable' }));
+                waveformEnabled = false;
+                document.getElementById('waveformStatus').textContent = '已停止';
+                document.getElementById('waveformStatus').style.color = '#ce9178';
+            };
+
+            document.getElementById('waveformRefresh').onclick = () => {
+                ws.send(JSON.stringify({ type: 'waveform-get' }));
+            };
+
+            document.getElementById('waveformDownload').onclick = () => {
+                ws.send(JSON.stringify({ type: 'waveform-download' }));
+            };
+
+            document.getElementById('uartSendBtn').onclick = () => {
+                const input = document.getElementById('uartInput');
+                const text = input.value;
+                for (let i = 0; i < text.length; i++) {
+                    ws.send(JSON.stringify({ type: 'uart-send', byte: text.charCodeAt(i) }));
+                }
+                input.value = '';
+            };
+
+            document.getElementById('uartClearBtn').onclick = () => {
+                uartBuffer = '';
+                document.getElementById('uartTerminal').textContent = '';
+                ws.send(JSON.stringify({ type: 'uart-clear' }));
+            };
+
+            document.getElementById('uartInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('uartSendBtn').click();
+                }
+            });
+        }
+
+        function updateBreakpointsList() {
+            const list = document.getElementById('breakpointsList');
+            list.innerHTML = Array.from(breakpoints).map(addr => `
+                <div class="bp-item">
+                    <span>0x${addr.toString(16).padStart(8, '0')}</span>
+                    <button class="remove-btn" onclick="removeBreakpoint(${addr})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function removeBreakpoint(addr) {
+            breakpoints.delete(addr);
+            ws.send(JSON.stringify({ type: 'remove-breakpoint', address: addr }));
+            updateBreakpointsList();
+        }
+
+        function updateWatchpointsList() {
+            const list = document.getElementById('watchpointsList');
+            list.innerHTML = watchpoints.map((wp, i) => `
+                <div class="wp-item">
+                    <span>0x${wp.address.toString(16).padStart(8, '0')} (${wp.type})</span>
+                    <button class="remove-btn" onclick="removeWatchpoint(${i})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function removeWatchpoint(index) {
+            const wp = watchpoints[index];
+            ws.send(JSON.stringify({ type: 'remove-watchpoint', address: wp.address }));
+            watchpoints.splice(index, 1);
+            updateWatchpointsList();
+        }
+
+        function saveSession() {
+            if (sessionId) {
+                ws.send(JSON.stringify({
+                    type: 'save-session',
+                    code: editor.getValue(),
+                    breakpoints: Array.from(breakpoints),
+                    watchpoints: watchpoints
+                }));
+            }
+        }
+
+        function updateStatus(msg) {
+            document.getElementById('statusBar').textContent = msg;
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

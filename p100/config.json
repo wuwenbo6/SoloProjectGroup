@@ -1,0 +1,16 @@
+{
+    "simulation": {
+        "temperature_range": [20, 100],
+        "time_steps": 100,
+        "reaction_rate_constant": 0.01
+    },
+    "visualization": {
+        "figure_size": [12, 8],
+        "dpi": 100,
+        "colormap": "viridis"
+    },
+    "storage": {
+        "hdf5_file": "simulation_results.h5",
+        "config_file": "config.json"
+    }
+}

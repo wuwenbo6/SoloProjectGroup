@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>农具榫卯分析系统</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="toolbar">
+      <h1>农具榫卯模型分析系统</h1>
+      <div class="toolbar-buttons">
+        <button id="loadModelBtn">加载模型</button>
+        <button id="stressAnalysisBtn">受力分析</button>
+        <button id="deformationBtn">形变模拟</button>
+        <button id="fatigueBtn">疲劳计算</button>
+        <button id="materialCompareBtn">材质对比</button>
+        <button id="wearBtn">磨损预测</button>
+        <button id="batchBtn">批量仿真</button>
+        <button id="exportBtn">导出预览</button>
+        <button id="saveBtn">保存方案</button>
+        <button id="loadBtn">加载方案</button>
+      </div>
+    </div>
+    
+    <div class="main-container">
+      <div class="sidebar">
+        <div class="panel">
+          <h3>模型信息</h3>
+          <div id="modelInfo">
+            <p>请加载模型</p>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h3>材料参数</h3>
+          <div class="form-group">
+            <label>弹性模量 (GPa):</label>
+            <input type="number" id="elasticModulus" value="12" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>泊松比:</label>
+            <input type="number" id="poissonRatio" value="0.35" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>密度 (kg/m³):</label>
+            <input type="number" id="density" value="700" step="10">
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h3>载荷设置</h3>
+          <div class="form-group">
+            <label>力大小 (N):</label>
+            <input type="number" id="forceMagnitude" value="1000" step="100">
+          </div>
+          <div class="form-group">
+            <label>力方向 X:</label>
+            <input type="number" id="forceDirX" value="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>力方向 Y:</label>
+            <input type="number" id="forceDirY" value="-1" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>力方向 Z:</label>
+            <input type="number" id="forceDirZ" value="0" step="0.1">
+          </div>
+        </div>
+        
+        <div class="panel" id="materialComparePanel" style="display: none;">
+          <h3>多材质对比</h3>
+          <div class="form-group">
+            <label>材质 1 名称:</label>
+            <input type="text" id="material1Name" value="橡木">
+          </div>
+          <div class="form-group">
+            <label>材质 1 弹性模量 (GPa):</label>
+            <input type="number" id="material1E" value="12" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>材质 2 名称:</label>
+            <input type="text" id="material2Name" value="松木">
+          </div>
+          <div class="form-group">
+            <label>材质 2 弹性模量 (GPa):</label>
+            <input type="number" id="material2E" value="8" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>材质 3 名称:</label>
+            <input type="text" id="material3Name" value="榉木">
+          </div>
+          <div class="form-group">
+            <label>材质 3 弹性模量 (GPa):</label>
+            <input type="number" id="material3E" value="10" step="0.1">
+          </div>
+        </div>
+        
+        <div class="panel" id="wearPanel" style="display: none;">
+          <h3>磨损预测</h3>
+          <div class="form-group">
+            <label>摩擦系数:</label>
+            <input type="number" id="frictionCoeff" value="0.3" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>使用周期 (天):</label>
+            <input type="number" id="usageDays" value="365" step="1">
+          </div>
+          <div class="form-group">
+            <label>每日使用时长 (小时):</label>
+            <input type="number" id="dailyHours" value="4" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>表面硬度 (HV):</label>
+            <input type="number" id="surfaceHardness" value="150" step="10">
+          </div>
+        </div>
+        
+        <div class="panel" id="batchPanel" style="display: none;">
+          <h3>批量仿真</h3>
+          <div class="form-group">
+            <label>仿真次数:</label>
+            <input type="number" id="batchCount" value="10" step="1" min="2" max="100">
+          </div>
+          <div class="form-group">
+            <label>最小力 (N):</label>
+            <input type="number" id="minForce" value="500" step="100">
+          </div>
+          <div class="form-group">
+            <label>最大力 (N):</label>
+            <input type="number" id="maxForce" value="5000" step="100">
+          </div>
+          <div class="form-group">
+            <label>变量类型:</label>
+            <select id="batchVariable">
+              <option value="force">载荷大小</option>
+              <option value="elasticModulus">弹性模量</option>
+              <option value="direction">载荷方向</option>
+            </select>
+          </div>
+          <div class="batch-progress" id="batchProgress" style="display: none;">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p id="progressText">0%</p>
+          </div>
+        </div>
+        
+        <div class="panel" id="exportPanel" style="display: none;">
+          <h3>导出预览</h3>
+          <div class="form-group">
+            <label>导出宽度 (px):</label>
+            <input type="number" id="exportWidth" value="1920" step="10">
+          </div>
+          <div class="form-group">
+            <label>导出高度 (px):</label>
+            <input type="number" id="exportHeight" value="1080" step="10">
+          </div>
+          <div class="form-group">
+            <label>导出格式:</label>
+            <select id="exportFormat">
+              <option value="png">PNG 图片</option>
+              <option value="jpeg">JPEG 图片</option>
+              <option value="obj">OBJ 模型</option>
+              <option value="stl">STL 模型</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>显示选项:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <label><input type="checkbox" id="showGrid" checked> 网格</label>
+              <label><input type="checkbox" id="showAxes" checked> 坐标轴</label>
+              <label><input type="checkbox" id="showWireframe"> 线框</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h3>分析结果</h3>
+          <div id="analysisResults">
+            <p>等待分析...</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="viewport">
+        <canvas id="threeCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <input type="file" id="fileInput" accept=".json,.obj,.glb,.gltf" style="display: none;">
+  
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

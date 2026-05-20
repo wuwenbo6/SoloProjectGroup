@@ -1,0 +1,241 @@
+# 主应用部署配置
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-app
+  namespace: analytics-platform
+  labels:
+    app: analytics-app
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: analytics-app
+  template:
+    metadata:
+      labels:
+        app: analytics-app
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - analytics-app
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: app
+        image: analytics-platform:latest  # 替换为你的镜像地址
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: ENVIRONMENT
+        - name: DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: DEBUG
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: LOG_LEVEL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: REDIS_URL
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: KAFKA_BROKERS
+        - name: DATABASE_URL
+          value: postgresql://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: DATABASE_PORT
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: DATABASE_NAME
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: analytics-config
+              key: DATABASE_USER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: analytics-secrets
+              key: DATABASE_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: analytics-secrets
+              key: JWT_SECRET
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        - name: app-logs
+          mountPath: /app/logs
+        - name: app-uploads
+          mountPath: /app/uploads
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: app-data-pvc
+      - name: app-logs
+        persistentVolumeClaim:
+          claimName: app-logs-pvc
+      - name: app-uploads
+        persistentVolumeClaim:
+          claimName: app-uploads-pvc
+---
+# 应用服务
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  namespace: analytics-platform
+  labels:
+    app: analytics-app
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: analytics-app
+  type: ClusterIP
+---
+# 应用数据存储
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-data-pvc
+  namespace: analytics-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+# 应用日志存储
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-logs-pvc
+  namespace: analytics-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+---
+# 应用上传存储
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-uploads-pvc
+  namespace: analytics-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: analytics-app-hpa
+  namespace: analytics-platform
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: analytics-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: analytics-app-pdb
+  namespace: analytics-platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: analytics-app

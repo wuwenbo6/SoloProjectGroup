@@ -1,0 +1,231 @@
+{
+  "num_comparisons": 9,
+  "accuracy_statistics": {
+    "mean_accuracy": -94.95302769788138,
+    "min_accuracy": -150.81510420331682,
+    "max_accuracy": -35.94058882282127,
+    "std_accuracy": 36.2015070399399
+  },
+  "individual_comparisons": [
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 464.7077489333515,
+        "porosity": 0.24893757477673314,
+        "water_absorption": 0.47684664096146756,
+        "uniformity": 0.7989375747767331,
+        "durability": 3.7127248191276685,
+        "printability": 97.68466409614676,
+        "overall_score": 239.15662604548666
+      },
+      "actual_metrics": {
+        "strength": 95.0,
+        "porosity": 0.42,
+        "water_absorption": 0.68
+      },
+      "differences": {
+        "strength_error_pct": 389.1660515087911,
+        "porosity_error_abs": -0.17106242522326684,
+        "absorption_error_abs": -0.2031533590385325,
+        "overall_accuracy_pct": -103.77796569186421
+      },
+      "actual_record_id": "REC001"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 464.7077489333515,
+        "porosity": 0.24893757477673314,
+        "water_absorption": 0.47684664096146756,
+        "uniformity": 0.7989375747767331,
+        "durability": 3.7127248191276685,
+        "printability": 97.68466409614676,
+        "overall_score": 239.15662604548666
+      },
+      "actual_metrics": {
+        "strength": 88.5,
+        "porosity": 0.45,
+        "water_absorption": 0.72
+      },
+      "differences": {
+        "strength_error_pct": 425.09350161960623,
+        "porosity_error_abs": -0.20106242522326687,
+        "absorption_error_abs": -0.2431533590385324,
+        "overall_accuracy_pct": -123.44169074727176
+      },
+      "actual_record_id": "REC002"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 464.7077489333515,
+        "porosity": 0.24893757477673314,
+        "water_absorption": 0.47684664096146756,
+        "uniformity": 0.7989375747767331,
+        "durability": 3.7127248191276685,
+        "printability": 97.68466409614676,
+        "overall_score": 239.15662604548666
+      },
+      "actual_metrics": {
+        "strength": 102.0,
+        "porosity": 0.4,
+        "water_absorption": 0.65
+      },
+      "differences": {
+        "strength_error_pct": 355.59583228759953,
+        "porosity_error_abs": -0.15106242522326688,
+        "absorption_error_abs": -0.17315335903853246,
+        "overall_accuracy_pct": -85.79285608126841
+      },
+      "actual_record_id": "REC003"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 362.95077939529097,
+        "porosity": 0.26626366112260375,
+        "water_absorption": 0.4494275033341228,
+        "uniformity": 0.8162636611226037,
+        "durability": 2.962635319965027,
+        "printability": 94.94275033341228,
+        "overall_score": 198.1510466918182
+      },
+      "actual_metrics": {
+        "strength": 95.0,
+        "porosity": 0.42,
+        "water_absorption": 0.68
+      },
+      "differences": {
+        "strength_error_pct": 282.0534519950431,
+        "porosity_error_abs": -0.15373633887739624,
+        "absorption_error_abs": -0.23057249666587726,
+        "overall_accuracy_pct": -50.25026609716096
+      },
+      "actual_record_id": "REC001"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 362.95077939529097,
+        "porosity": 0.26626366112260375,
+        "water_absorption": 0.4494275033341228,
+        "uniformity": 0.8162636611226037,
+        "durability": 2.962635319965027,
+        "printability": 94.94275033341228,
+        "overall_score": 198.1510466918182
+      },
+      "actual_metrics": {
+        "strength": 88.5,
+        "porosity": 0.45,
+        "water_absorption": 0.72
+      },
+      "differences": {
+        "strength_error_pct": 310.1138750229277,
+        "porosity_error_abs": -0.18373633887739627,
+        "absorption_error_abs": -0.2705724966658772,
+        "overall_accuracy_pct": -65.98047761110328
+      },
+      "actual_record_id": "REC002"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 362.95077939529097,
+        "porosity": 0.26626366112260375,
+        "water_absorption": 0.4494275033341228,
+        "uniformity": 0.8162636611226037,
+        "durability": 2.962635319965027,
+        "printability": 94.94275033341228,
+        "overall_score": 198.1510466918182
+      },
+      "actual_metrics": {
+        "strength": 102.0,
+        "porosity": 0.4,
+        "water_absorption": 0.65
+      },
+      "differences": {
+        "strength_error_pct": 255.83409744636367,
+        "porosity_error_abs": -0.13373633887739628,
+        "absorption_error_abs": -0.20057249666587723,
+        "overall_accuracy_pct": -35.94058882282127
+      },
+      "actual_record_id": "REC003"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 515.3051740974603,
+        "porosity": 0.24668051765118704,
+        "water_absorption": 0.5408673494438252,
+        "uniformity": 0.7966805176511871,
+        "durability": 4.105335928482997,
+        "printability": 95.91326505561749,
+        "overall_score": 258.796464685205
+      },
+      "actual_metrics": {
+        "strength": 95.0,
+        "porosity": 0.42,
+        "water_absorption": 0.68
+      },
+      "differences": {
+        "strength_error_pct": 442.4264990499582,
+        "porosity_error_abs": -0.17331948234881295,
+        "absorption_error_abs": -0.13913265055617485,
+        "overall_accuracy_pct": -129.195487006567
+      },
+      "actual_record_id": "REC001"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 515.3051740974603,
+        "porosity": 0.24668051765118704,
+        "water_absorption": 0.5408673494438252,
+        "uniformity": 0.7966805176511871,
+        "durability": 4.105335928482997,
+        "printability": 95.91326505561749,
+        "overall_score": 258.796464685205
+      },
+      "actual_metrics": {
+        "strength": 88.5,
+        "porosity": 0.45,
+        "water_absorption": 0.72
+      },
+      "differences": {
+        "strength_error_pct": 482.2657334434579,
+        "porosity_error_abs": -0.20331948234881297,
+        "absorption_error_abs": -0.17913265055617478,
+        "overall_accuracy_pct": -150.81510420331682
+      },
+      "actual_record_id": "REC002"
+    },
+    {
+      "comparison_type": "with_actual_data",
+      "simulation_metrics": {
+        "strength": 515.3051740974603,
+        "porosity": 0.24668051765118704,
+        "water_absorption": 0.5408673494438252,
+        "uniformity": 0.7966805176511871,
+        "durability": 4.105335928482997,
+        "printability": 95.91326505561749,
+        "overall_score": 258.796464685205
+      },
+      "actual_metrics": {
+        "strength": 102.0,
+        "porosity": 0.4,
+        "water_absorption": 0.65
+      },
+      "differences": {
+        "strength_error_pct": 405.2011510759415,
+        "porosity_error_abs": -0.15331948234881299,
+        "absorption_error_abs": -0.10913265055617483,
+        "overall_accuracy_pct": -109.38281301955863
+      },
+      "actual_record_id": "REC003"
+    }
+  ],
+  "recommendations": [
+    "仿真强度普遍高估，建议调整纤维协同作用系数",
+    "整体仿真准确度较低(-95.0%)，建议校准模型参数"
+  ]
+}

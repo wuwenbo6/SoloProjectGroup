@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>化学方程式配平器</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔬 化学方程式配平器</h1>
+      <p>支持OCR识别、摄像头拍摄、图片上传、离子配平、有机物燃烧、LaTeX导出</p>
+    </header>
+
+    <div class="main-content">
+      <div class="left-panel">
+        <div class="input-section">
+          <h2>配平模式</h2>
+          <div class="mode-tabs">
+            <button class="mode-btn active" data-mode="normal">普通方程式</button>
+            <button class="mode-btn" data-mode="ionic">离子方程式</button>
+            <button class="mode-btn" data-mode="combustion">有机物燃烧</button>
+          </div>
+
+          <h2>输入方式</h2>
+          <div class="input-tabs">
+            <button class="tab-btn active" data-tab="manual">手动输入</button>
+            <button class="tab-btn" data-tab="camera">摄像头</button>
+            <button class="tab-btn" data-tab="upload">图片上传</button>
+          </div>
+
+          <div class="tab-content active" id="manual-tab">
+            <textarea id="equation-input" placeholder="输入化学方程式，例如：H2 + O2 -> H2O&#10;离子方程式示例：Fe(2+) + Cl2 -> Fe(3+) + Cl(-)&#10;燃烧反应示例：CH4"></textarea>
+            <button id="balance-btn" class="primary-btn">配平方程式</button>
+          </div>
+
+          <div class="tab-content" id="camera-tab">
+            <video id="camera-preview" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            <div class="camera-controls">
+              <button id="start-camera-btn" class="primary-btn">开启摄像头</button>
+              <button id="capture-btn" class="secondary-btn" disabled>拍摄识别</button>
+            </div>
+          </div>
+
+          <div class="tab-content" id="upload-tab">
+            <div class="upload-area" id="upload-area">
+              <p>拖拽图片到此处或点击选择</p>
+              <input type="file" id="file-input" accept="image/*" hidden>
+            </div>
+            <img id="preview-image" style="display: none; max-width: 100%; margin-top: 10px;">
+            <button id="recognize-btn" class="primary-btn" style="display: none; margin-top: 10px;">识别方程式</button>
+          </div>
+        </div>
+
+        <div class="ocr-status">
+          <span id="ocr-status-text">OCR引擎就绪</span>
+          <div class="progress-bar" style="display: none;">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="result-section">
+          <h2>配平结果</h2>
+          <div id="result-container">
+            <p class="placeholder">请输入化学方程式并点击配平</p>
+          </div>
+        </div>
+
+        <div class="history-section">
+          <h2>历史记录</h2>
+          <div id="history-list" class="history-list">
+            <p class="placeholder">暂无历史记录</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

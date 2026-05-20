@@ -1,0 +1,15 @@
+{
+  "material_names": [
+    "mulberry",
+    "bamboo",
+    "rice_straw"
+  ],
+  "ratios": [
+    0.4,
+    0.35,
+    0.25
+  ],
+  "soak_time": 24.0,
+  "temperature": 25.0,
+  "simulation_id": "basic_example"
+}

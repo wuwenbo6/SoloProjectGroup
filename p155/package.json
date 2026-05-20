@@ -1,0 +1,25 @@
+{
+  "name": "coop-puzzle-game",
+  "version": "1.0.0",
+  "description": "Multiplayer cooperative puzzle game with Phaser.js and WebSocket",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "client": "npx http-server client -p 8080 -c-1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "http-server": "^14.1.1"
+  },
+  "keywords": ["phaser", "websocket", "webrtc", "multiplayer", "puzzle"],
+  "author": "",
+  "license": "MIT"
+}

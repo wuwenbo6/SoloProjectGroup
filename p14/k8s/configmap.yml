@@ -1,0 +1,50 @@
+# 应用配置ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: analytics-config
+  namespace: analytics-platform
+data:
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  APP_PORT: "8000"
+  REDIS_URL: "redis://redis-service:6379/0"
+  KAFKA_BROKERS: "kafka-service:9092"
+  DATABASE_HOST: "postgres-service"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "analytics"
+  DATABASE_USER: "postgres"
+---
+# Prometheus配置
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: analytics-platform
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'analytics-app'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: analytics-app
+            action: keep
+
+      - job_name: 'postgres'
+        static_configs:
+          - targets: ['postgres-service:5432']
+
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis-service:6379']

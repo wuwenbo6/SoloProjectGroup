@@ -1,0 +1,15 @@
+{
+  "comparison_metrics": {
+    "MAE": 3.1482064814666457,
+    "RMSE": 5.506488972534978,
+    "correlation": -0.03185166246157781,
+    "max_error": 23.2191779731508,
+    "mean_error_ratio_percent": 42849.58618761798
+  },
+  "test_data_points": 1000,
+  "quality_assessment": "POOR",
+  "recommendations": [
+    "建议检查摩擦系数和编织方式参数设置",
+    "建议增加边界条件验证，检查约束设置"
+  ]
+}

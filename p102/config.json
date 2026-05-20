@@ -1,0 +1,37 @@
+{
+    "simulation": {
+        "resolution": 100,
+        "max_iterations": 1000,
+        "tolerance": 1e-6
+    },
+    "wood_types": {
+        "pine": {
+            "elastic_modulus": 10e9,
+            "shear_modulus": 0.5e9,
+            "density": 500,
+            "compressive_strength": 40e6,
+            "tensile_strength": 80e6
+        },
+        "oak": {
+            "elastic_modulus": 12e9,
+            "shear_modulus": 0.6e9,
+            "density": 700,
+            "compressive_strength": 60e6,
+            "tensile_strength": 100e6
+        },
+        "rosewood": {
+            "elastic_modulus": 15e9,
+            "shear_modulus": 0.8e9,
+            "density": 900,
+            "compressive_strength": 80e6,
+            "tensile_strength": 120e6
+        }
+    },
+    "joint_types": ["butt_joint", "lap_joint", "mortise_tenon", "dovetail"],
+    "load_directions": ["axial", "shear", "bending", "torsion"],
+    "optimization": {
+        "method": "bayesian",
+        "n_calls": 50,
+        "n_random_starts": 10
+    }
+}
