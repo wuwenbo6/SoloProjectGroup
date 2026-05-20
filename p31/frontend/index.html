@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古建筑榫卯结构3D交互系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #three-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .sidebar {
+            width: 340px;
+            background: linear-gradient(180deg, #16213e 0%, #0f3460 100%);
+            color: #fff;
+            padding: 15px;
+            overflow-y: auto;
+            border-left: 1px solid #e94560;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #e94560;
+            border-radius: 3px;
+        }
+
+        .sidebar h2 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e94560;
+        }
+
+        .panel-section {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .panel-section h3 {
+            font-size: 13px;
+            margin-bottom: 10px;
+            color: #ddd;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            background: #e94560;
+            color: #fff;
+        }
+
+        .btn:hover {
+            background: #ff6b6b;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #533483;
+        }
+
+        .btn-secondary:hover {
+            background: #6b44a3;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #34ce57;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #ffca2c;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #e4606d;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .btn-small {
+            padding: 5px 8px;
+            font-size: 11px;
+        }
+
+        .slider-container {
+            margin-bottom: 8px;
+        }
+
+        .slider-container label {
+            display: block;
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: #aaa;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e94560;
+            cursor: pointer;
+        }
+
+        .model-selector {
+            width: 100%;
+            padding: 7px;
+            border-radius: 6px;
+            border: 1px solid #533483;
+            background: #1a1a2e;
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #533483;
+            background: #1a1a2e;
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .search-box::placeholder {
+            color: #888;
+        }
+
+        .search-results {
+            max-height: 120px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+
+        .search-result-item {
+            padding: 6px 8px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .search-result-item:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #533483;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .info-box {
+            padding: 8px;
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 6px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .info-box .label {
+            color: #e94560;
+            font-weight: bold;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 16px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #533483;
+            border-top: 4px solid #e94560;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toolbar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            z-index: 100;
+            max-width: calc(100% - 370px);
+        }
+
+        .toolbar-btn {
+            padding: 7px 12px;
+            background: rgba(22, 33, 62, 0.95);
+            border: 1px solid #e94560;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .toolbar-btn:hover {
+            background: #e94560;
+        }
+
+        .toolbar-btn.active {
+            background: #e94560;
+        }
+
+        .stress-legend {
+            position: absolute;
+            bottom: 15px;
+            right: 360px;
+            background: rgba(22, 33, 62, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 11px;
+            z-index: 100;
+            min-width: 180px;
+        }
+
+        .legend-gradient {
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(to right, #00ff00, #ffff00, #ff6600, #ff0000);
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 10px;
+        }
+
+        .document-panel {
+            position: absolute;
+            top: 60px;
+            right: 360px;
+            width: 300px;
+            max-height: 400px;
+            background: rgba(22, 33, 62, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .document-panel h4 {
+            color: #e94560;
+            margin-bottom: 10px;
+        }
+
+        .recording-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #ff0000;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+            margin-right: 5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .record-item {
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .record-item:hover {
+            background: rgba(233, 69, 96, 0.2);
+        }
+
+        .performance-badge {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(22, 33, 62, 0.9);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 11px;
+            z-index: 100;
+        }
+
+        .fps-good { color: #28a745; }
+        .fps-medium { color: #ffc107; }
+        .fps-low { color: #dc3545; }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+
+        .switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #e94560;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(16px);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="canvas-container">
+            <canvas id="three-canvas"></canvas>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <div>加载3D模型中...</div>
+            </div>
+
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="toggleStressView()" id="btn-stress">⚡ 应力视图</button>
+                <button class="toolbar-btn" onclick="toggleForceSimulation()" id="btn-force">🔬 受力模拟</button>
+                <button class="toolbar-btn" onclick="showDocuments()">📚 关联文献</button>
+                <button class="toolbar-btn" onclick="resetCamera()">🎯 重置视角</button>
+            </div>
+
+            <div id="stress-legend" class="stress-legend" style="display: none;">
+                <div><strong>应力分布 (MPa)</strong></div>
+                <div class="legend-gradient"></div>
+                <div class="legend-labels">
+                    <span>0 (低)</span>
+                    <span>40</span>
+                    <span>80 (高)</span>
+                </div>
+                <div style="margin-top: 8px; font-size: 10px; color: #aaa;">
+                    最大应力: <span id="max-stress-display">0</span> MPa<br>
+                    安全系数: <span id="safety-factor-display">1.0</span>
+                </div>
+            </div>
+
+            <div id="document-panel" class="document-panel">
+                <h4>相关历史文献</h4>
+                <div id="document-list"></div>
+            </div>
+
+            <div class="performance-badge">
+                FPS: <span id="fps-display" class="fps-good">60</span> | 
+                顶点: <span id="vertices-display">0</span> | 
+                模式: <span id="quality-display">高性能</span>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>🏯 榫卯3D交互系统</h2>
+
+            <div class="panel-section">
+                <h3>🔍 智能检索</h3>
+                <input type="text" class="search-box" id="search-input" placeholder="搜索榫卯类型、工艺、应用..." 
+                       oninput="smartSearch(this.value)">
+                <div id="search-tags">
+                    <span class="search-tag" onclick="searchByTag('燕尾榫')">燕尾榫</span>
+                    <span class="search-tag" onclick="searchByTag('格肩榫')">格肩榫</span>
+                    <span class="search-tag" onclick="searchByTag('古建筑')">古建筑</span>
+                    <span class="search-tag" onclick="searchByTag('家具')">家具</span>
+                </div>
+                <div id="search-results" class="search-results" style="display: none;"></div>
+            </div>
+
+            <div class="panel-section">
+                <h3>📦 模型选择</h3>
+                <select id="model-selector" class="model-selector" onchange="loadSelectedModel()">
+                    <option value="">请选择榫卯模型</option>
+                    <option value="mortise1">燕尾榫 - 古建筑常用连接</option>
+                    <option value="mortise2">格肩榫 - 家具传统工艺</option>
+                    <option value="mortise3">霸王拳 - 梁头装饰榫卯</option>
+                    <option value="mortise4">半榫 - 透空连接结构</option>
+                </select>
+            </div>
+
+            <div class="panel-section">
+                <h3>🔧 拆解装配控制</h3>
+                <div class="btn-group">
+                    <button class="btn" onclick="startDisassembly()">🔧 拆解</button>
+                    <button class="btn btn-secondary" onclick="startAssembly()">🔩 装配</button>
+                </div>
+                <button class="btn btn-secondary" onclick="toggleAnimation()" style="margin-top: 6px;">⏯ 暂停/继续</button>
+                <div class="slider-container" style="margin-top: 10px;">
+                    <label>拆解进度: <span id="step-value">0</span>%</label>
+                    <input type="range" id="step-slider" min="0" max="100" value="0" oninput="setDisassemblyStep(this.value)">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>🎬 步骤录制回放</h3>
+                <div class="btn-group">
+                    <button class="btn btn-danger" id="record-btn" onclick="toggleRecording()">
+                        <span id="recording-indicator" style="display: none;" class="recording-indicator"></span>
+                        录制
+                    </button>
+                    <button class="btn btn-success" id="play-btn" onclick="togglePlayback()" disabled>播放</button>
+                </div>
+                <div class="btn-group" style="margin-top: 5px;">
+                    <button class="btn btn-secondary btn-small" onclick="saveRecording()">💾 保存</button>
+                    <button class="btn btn-secondary btn-small" onclick="loadRecording()">📂 加载</button>
+                    <button class="btn btn-secondary btn-small" onclick="clearRecording()">🗑️ 清空</button>
+                </div>
+                <div id="record-list" style="margin-top: 8px; max-height: 80px; overflow-y: auto;"></div>
+                <div class="slider-container" style="margin-top: 8px;">
+                    <label>播放速度: <span id="playback-speed-value">1.0</span>x</label>
+                    <input type="range" id="playback-speed" min="25" max="200" value="100" 
+                           oninput="setPlaybackSpeed(this.value)">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>🔬 受力模拟</h3>
+                <div class="toggle-switch">
+                    <span>实时应力计算</span>
+                    <label class="switch">
+                        <input type="checkbox" id="force-simulation-toggle" onchange="toggleForceCalculation(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-small" onclick="applyLoad('compression')">压力测试</button>
+                    <button class="btn btn-secondary btn-small" onclick="applyLoad('tension')">拉力测试</button>
+                    <button class="btn btn-secondary btn-small" onclick="applyLoad('shear')">剪力测试</button>
+                </div>
+                <div class="slider-container" style="margin-top: 8px;">
+                    <label>荷载强度: <span id="load-intensity-value">50</span>%</label>
+                    <input type="range" id="load-intensity" min="0" max="100" value="50" 
+                           oninput="setLoadIntensity(this.value)">
+                </div>
+                <div class="info-box" style="margin-top: 8px;">
+                    <div><span class="label">当前荷载:</span> <span id="current-load-type">无</span></div>
+                    <div><span class="label">最大应力:</span> <span id="stress-max">0</span> MPa</div>
+                    <div><span class="label">形变量:</span> <span id="deformation-max">0</span> mm</div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>⚙️ 性能设置</h3>
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-small" onclick="setQuality('low')">低画质</button>
+                    <button class="btn btn-secondary btn-small" onclick="setQuality('medium')">中画质</button>
+                    <button class="btn btn-secondary btn-small" onclick="setQuality('high')">高画质</button>
+                </div>
+                <div class="toggle-switch" style="margin-top: 8px;">
+                    <span>抗锯齿</span>
+                    <label class="switch">
+                        <input type="checkbox" id="aa-toggle" checked onchange="toggleAA(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-switch">
+                    <span>阴影效果</span>
+                    <label class="switch">
+                        <input type="checkbox" id="shadow-toggle" checked onchange="toggleShadows(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-switch">
+                    <span>LOD动态加载</span>
+                    <label class="switch">
+                        <input type="checkbox" id="lod-toggle" checked onchange="toggleLOD(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>👁️ 视图控制</h3>
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-small" onclick="setView('front')">正视</button>
+                    <button class="btn btn-secondary btn-small" onclick="setView('top')">俯视</button>
+                    <button class="btn btn-secondary btn-small" onclick="setView('side')">侧视</button>
+                    <button class="btn btn-secondary btn-small" onclick="setView('iso')">等轴</button>
+                </div>
+                <div class="slider-container">
+                    <label>旋转速度</label>
+                    <input type="range" id="rotate-speed" min="0" max="100" value="30">
+                </div>
+                <div class="slider-container">
+                    <label>缩放级别</label>
+                    <input type="range" id="zoom-level" min="50" max="200" value="100">
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>📊 模型信息</h3>
+                <div class="info-box">
+                    <div><span class="label">模型名称:</span> <span id="model-name">未加载</span></div>
+                    <div><span class="label">构件数量:</span> <span id="component-count">0</span></div>
+                    <div><span class="label">顶点数:</span> <span id="vertex-count">0</span></div>
+                    <div><span class="label">面数:</span> <span id="face-count">0</span></div>
+                    <div><span class="label">浏览次数:</span> <span id="view-count">0</span></div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>📍 受力分析节点</h3>
+                <div id="stress-nodes" class="info-box">
+                    <div style="color: #888;">暂无数据</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="js/core/SceneRenderer.js"></script>
+    <script src="js/core/ModelLoader.js"></script>
+    <script src="js/core/InteractionManager.js"></script>
+    <script src="js/core/OfflineCacheManager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "古法酱油发酵配置",
+  "type": "soy_sauce",
+  "fermentation": {
+    "total_time": 1440,
+    "time_step": 6.0,
+    "initial_temperature": 28.0,
+    "target_temperature": 32.0,
+    "initial_humidity": 75.0,
+    "target_humidity": 80.0
+  },
+  "kinetics": {
+    "aspergillus_growth_rate": 0.15,
+    "lactobacillus_growth_rate": 0.1,
+    "yeast_growth_rate": 0.08,
+    "protein_decomposition_rate": 0.12,
+    "starch_conversion_rate": 0.1,
+    "amino_acid_production_rate": 0.08,
+    "temperature_sensitivity": 0.03,
+    "salt_tolerance": 0.15
+  },
+  "initial_conditions": {
+    "aspergillus_concentration": 5e5,
+    "lactobacillus_concentration": 1e4,
+    "yeast_concentration": 1e3,
+    "protein_concentration": 200.0,
+    "starch_concentration": 100.0,
+    "amino_acid_concentration": 0.0,
+    "salt_concentration": 180.0,
+    "ph": 6.0
+  },
+  "optimization": {
+    "target_quality_score": 0.85,
+    "temperature_bounds": [25, 38],
+    "time_bounds": [720, 2160]
+  }
+}

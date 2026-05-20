@@ -1,0 +1,33 @@
+{
+  "name": "古法黄酒发酵配置",
+  "type": "rice_wine",
+  "fermentation": {
+    "total_time": 168,
+    "time_step": 0.5,
+    "initial_temperature": 25.0,
+    "target_temperature": 30.0,
+    "initial_humidity": 70.0,
+    "target_humidity": 75.0
+  },
+  "kinetics": {
+    "yeast_growth_rate": 0.3,
+    "bacteria_growth_rate": 0.15,
+    "sugar_conversion_rate": 0.25,
+    "alcohol_production_rate": 0.2,
+    "temperature_sensitivity": 0.05,
+    "ph_optimal": 4.5,
+    "ph_range": 1.0
+  },
+  "initial_conditions": {
+    "yeast_concentration": 1e6,
+    "bacteria_concentration": 1e4,
+    "sugar_concentration": 150.0,
+    "alcohol_concentration": 0.0,
+    "ph": 5.5
+  },
+  "optimization": {
+    "target_quality_score": 0.9,
+    "temperature_bounds": [20, 35],
+    "time_bounds": [72, 240]
+  }
+}

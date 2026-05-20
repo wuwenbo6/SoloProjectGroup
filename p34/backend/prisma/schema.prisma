@@ -1,0 +1,384 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  DESIGNER
+  COLLECTOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum MaterialStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  ERROR
+}
+
+enum DataSourceStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  SYNCING
+}
+
+enum CopyrightStatus {
+  UNREGISTERED
+  PENDING
+  REGISTERED
+  REJECTED
+  EXPIRED
+}
+
+enum TaskStatus {
+  DRAFT
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ReviewResult {
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
+}
+
+model User {
+  id           String      @id @default(cuid())
+  username     String      @unique
+  email        String      @unique
+  passwordHash String
+  role         UserRole    @default(COLLECTOR)
+  avatar       String?
+  status       UserStatus  @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  materials    PatternMaterial[]
+  features     PatternFeature[]
+  patterns     GeneratedPattern[]
+  operations   UserOperation[]
+  permissions  UserPermission[]
+
+  @@map("users")
+}
+
+model UserPermission {
+  id          String   @id @default(cuid())
+  userId      String
+  module      String
+  canCreate   Boolean  @default(false)
+  canRead     Boolean  @default(true)
+  canUpdate   Boolean  @default(false)
+  canDelete   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module])
+  @@map("user_permissions")
+}
+
+model Category {
+  id          String             @id @default(cuid())
+  name        String
+  parentId    String?
+  ethnicity   String?
+  description String?
+  sortOrder   Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  parent      Category?          @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[]         @relation("CategoryParent")
+  materials   PatternMaterial[]
+
+  @@map("categories")
+}
+
+model PatternMaterial {
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  categoryId  String?
+  ethnicity   String?
+  imageUrl    String
+  thumbnailUrl String
+  imageWidth  Int?
+  imageHeight Int?
+  fileSize    Int?
+  status      MaterialStatus     @default(PENDING)
+  errorMessage String?
+  uploadedBy  String
+  museumSourceId String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  category    Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  uploader    User               @relation(fields: [uploadedBy], references: [id])
+  museumSource MuseumDataSource? @relation(fields: [museumSourceId], references: [id], onDelete: SetNull)
+  feature     PatternFeature?
+
+  @@map("pattern_materials")
+}
+
+model PatternFeature {
+  id             String   @id @default(cuid())
+  materialId     String   @unique
+  contourData    String
+  colorPalette   Json
+  textureFeatures Json
+  geometricParams Json
+  isManual       Boolean  @default(false)
+  extractedBy    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  material       PatternMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  extractor      User            @relation(fields: [extractedBy], references: [id])
+
+  @@map("pattern_features")
+}
+
+model GeneratedPattern {
+  id              String   @id @default(cuid())
+  name            String
+  baseFeatureIds  Json
+  parameters      Json
+  previewUrl      String
+  highResUrl      String?
+  isPublic        Boolean  @default(false)
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator         User     @relation(fields: [createdBy], references: [id])
+
+  @@map("generated_patterns")
+}
+
+model UserOperation {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  resourceType String
+  resourceId  String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@map("user_operations")
+}
+
+model CollaborativeSession {
+  id           String   @id @default(cuid())
+  patternId    String
+  activeUsers  Json
+  lastActivity DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([patternId])
+  @@map("collaborative_sessions")
+}
+
+model MuseumDataSource {
+  id              String           @id @default(cuid())
+  name            String
+  museum          String
+  description     String?
+  apiEndpoint     String
+  apiKey          String?
+  ethnicity       String?
+  syncInterval    Int              @default(86400000)
+  lastSyncAt      DateTime?
+  lastSyncCount   Int              @default(0)
+  status          DataSourceStatus @default(ACTIVE)
+  totalFetched    Int              @default(0)
+  config          Json?
+  createdBy       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  materials       PatternMaterial[]
+
+  @@index([museum])
+  @@index([status])
+  @@map("museum_data_sources")
+}
+
+model SyncLog {
+  id              String   @id @default(cuid())
+  dataSourceId    String
+  startTime       DateTime
+  endTime         DateTime?
+  status          String
+  itemsFetched    Int      @default(0)
+  itemsCreated    Int      @default(0)
+  itemsUpdated    Int      @default(0)
+  itemsSkipped    Int      @default(0)
+  errors          Json?
+  createdAt       DateTime @default(now())
+
+  dataSource      MuseumDataSource @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+
+  @@index([dataSourceId])
+  @@index([status])
+  @@map("sync_logs")
+}
+
+model CopyrightRegistration {
+  id              String          @id @default(cuid())
+  patternId       String?
+  materialId      String?
+  registrationNo  String?
+  title           String
+  author          String
+  creationDate    DateTime?
+  registrationDate DateTime?
+  copyrightType   String
+  scope           String?
+  status          CopyrightStatus @default(UNREGISTERED)
+  certificateUrl  String?
+  evidenceHash    String?
+  blockchainTxId  String?
+  remarks         String?
+  createdBy       String
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  pattern         GeneratedPattern? @relation(fields: [patternId], references: [id], onDelete: SetNull)
+  material        PatternMaterial?  @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  creator         User              @relation("CopyrightCreator", fields: [createdBy], references: [id])
+  reviewer        User?             @relation("CopyrightReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  logs            CopyrightLog[]
+
+  @@index([patternId])
+  @@index([materialId])
+  @@index([status])
+  @@map("copyright_registrations")
+}
+
+model CopyrightLog {
+  id              String   @id @default(cuid())
+  registrationId  String
+  action          String
+  remarks         String?
+  operatorId      String
+  createdAt       DateTime @default(now())
+
+  registration    CopyrightRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  operator        User                   @relation(fields: [operatorId], references: [id])
+
+  @@index([registrationId])
+  @@map("copyright_logs")
+}
+
+model DesignTask {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  requirementDoc  String?
+  categoryId      String?
+  ethnicity       String?
+  priority        TaskPriority @default(MEDIUM)
+  status          TaskStatus   @default(DRAFT)
+  deadline        DateTime?
+  estimatedHours  Int?         @default(0)
+  actualHours     Int?         @default(0)
+  createdBy       String
+  assignedTo      String?
+  completedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  category        Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  creator         User         @relation("TaskCreator", fields: [createdBy], references: [id])
+  assignee        User?        @relation("TaskAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  reviews         TaskReview[]
+  submissions     TaskSubmission[]
+  comments        TaskComment[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@map("design_tasks")
+}
+
+model TaskReview {
+  id              String       @id @default(cuid())
+  taskId          String
+  reviewerId      String
+  result          ReviewResult
+  comments        String?
+  reviewLevel     Int          @default(1)
+  createdAt       DateTime     @default(now())
+
+  task            DesignTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  reviewer        User         @relation(fields: [reviewerId], references: [id])
+
+  @@index([taskId])
+  @@index([reviewerId])
+  @@map("task_reviews")
+}
+
+model TaskSubmission {
+  id              String       @id @default(cuid())
+  taskId          String
+  submittedBy     String
+  patternIds      Json
+  remark          String?
+  createdAt       DateTime     @default(now())
+
+  task            DesignTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  submitter       User         @relation(fields: [submittedBy], references: [id])
+
+  @@index([taskId])
+  @@map("task_submissions")
+}
+
+model TaskComment {
+  id              String       @id @default(cuid())
+  taskId          String
+  userId          String
+  content         String
+  createdAt       DateTime     @default(now())
+
+  task            DesignTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@map("task_comments")
+}

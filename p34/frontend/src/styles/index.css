@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background-color: #F5F0E6;
+  color: #2C2C2C;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-red-vermilion text-white px-6 py-2 rounded-md hover:bg-opacity-90 transition-all duration-200 shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-indigo-dark text-white px-6 py-2 rounded-md hover:bg-opacity-90 transition-all duration-200 shadow-md;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-gold-earth text-gold-earth px-6 py-2 rounded-md hover:bg-gold-earth hover:text-white transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 border border-gray-100;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-dark focus:border-transparent;
+  }
+}
+
+.paper-texture {
+  background-color: #F5F0E6;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+.pattern-border {
+  border-image: linear-gradient(45deg, #B8860B, #1E3A5F, #B8860B) 1;
+}
