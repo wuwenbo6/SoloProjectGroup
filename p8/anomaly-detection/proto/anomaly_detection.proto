@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package anomaly;
+
+service AnomalyDetectionService {
+  rpc DetectAnomaly(DetectAnomalyRequest) returns (DetectAnomalyResponse) {}
+  rpc BatchDetectAnomaly(BatchDetectAnomalyRequest) returns (BatchDetectAnomalyResponse) {}
+}
+
+message TimeSeriesPoint {
+  int64 timestamp = 1;
+  double value = 2;
+  string metric = 3;
+}
+
+message DetectAnomalyRequest {
+  string device_id = 1;
+  repeated TimeSeriesPoint data = 2;
+}
+
+message AnomalyResult {
+  string anomaly_type = 1;
+  double confidence = 2;
+  int64 timestamp = 3;
+  string metric = 4;
+  string description = 5;
+}
+
+message DetectAnomalyResponse {
+  string device_id = 1;
+  repeated AnomalyResult anomalies = 2;
+  bool has_anomaly = 3;
+}
+
+message BatchDetectAnomalyRequest {
+  repeated DetectAnomalyRequest requests = 1;
+}
+
+message BatchDetectAnomalyResponse {
+  repeated DetectAnomalyResponse responses = 1;
+}

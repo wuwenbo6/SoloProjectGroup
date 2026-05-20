@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package device;
+
+option go_package = "iot-core-service/pb/device";
+
+message DeviceDataPoint {
+  string device_id = 1;
+  int64 timestamp = 2;
+  map<string, double> metrics = 3;
+}
+
+message BatchDeviceDataRequest {
+  repeated DeviceDataPoint data_points = 1;
+}
+
+message BatchDeviceDataResponse {
+  int32 success_count = 1;
+  int32 failed_count = 2;
+  repeated string errors = 3;
+}
+
+service DeviceDataService {
+  rpc ReportDeviceData(BatchDeviceDataRequest) returns (BatchDeviceDataResponse) {}
+}

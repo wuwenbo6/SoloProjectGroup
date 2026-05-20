@@ -1,0 +1,26 @@
+server:
+  http_port: 8080
+  grpc_port: 50051
+
+influxdb:
+  url: http://localhost:8086
+  token: my-token
+  org: iot-org
+  bucket: iot-data
+
+postgresql:
+  host: localhost
+  port: 5432
+  user: iot_user
+  password: iot_password
+  dbname: iot_db
+
+anomaly_detection:
+  host: localhost
+  port: 50052
+
+prometheus:
+  port: 9090
+
+log:
+  level: info
