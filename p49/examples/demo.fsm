@@ -1,0 +1,46 @@
+machine TrafficLight {
+    initial: Red
+    
+    state Red {
+        on Enter: turnOnRedLight
+        on Exit: turnOffRedLight
+        on TimerTick -> Yellow
+    }
+    
+    state Yellow {
+        on Enter: turnOnYellowLight
+        on Exit: turnOffYellowLight
+        on TimerTick -> Green
+    }
+    
+    state Green {
+        on Enter: turnOnGreenLight
+        on Exit: turnOffGreenLight
+        on TimerTick -> Red
+        on EmergencyStop -> Red
+    }
+}
+
+action turnOnRedLight {
+    print("红灯亮起")
+}
+
+action turnOffRedLight {
+    print("红灯熄灭")
+}
+
+action turnOnYellowLight {
+    print("黄灯亮起")
+}
+
+action turnOffYellowLight {
+    print("黄灯熄灭")
+}
+
+action turnOnGreenLight {
+    print("绿灯亮起")
+}
+
+action turnOffGreenLight {
+    print("绿灯熄灭")
+}

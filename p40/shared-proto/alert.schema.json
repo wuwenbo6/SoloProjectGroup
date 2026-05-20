@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Alert",
+  "description": "Anomaly alert message format",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique alert ID (UUID)"
+    },
+    "sensor_id": {
+      "type": "string",
+      "description": "Sensor identifier that triggered the alert"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "Unix timestamp in milliseconds when alert was triggered"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of alert (e.g., anomaly)"
+    },
+    "metric": {
+      "type": "string",
+      "description": "Metric that triggered the alert (temperature or humidity)"
+    },
+    "value": {
+      "type": "number",
+      "description": "The anomalous value detected"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable alert message"
+    }
+  },
+  "required": ["id", "sensor_id", "timestamp", "type", "metric", "value", "message"]
+}

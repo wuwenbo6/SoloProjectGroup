@@ -1,0 +1,197 @@
+.app-container {
+  display: flex;
+  height: 100vh;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: #1e1e1e;
+  border-bottom: 1px solid #333;
+  align-items: center;
+}
+
+.toolbar button {
+  padding: 8px 16px;
+  background: #0e639c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.toolbar button:hover {
+  background: #1177bb;
+}
+
+.toolbar button:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
+
+.toolbar .event-input {
+  padding: 8px;
+  background: #2d2d2d;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 4px;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.editor-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #333;
+}
+
+.panel-title {
+  padding: 8px 12px;
+  background: #252526;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.editor-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
+.visualizer-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+}
+
+.visualizer-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+}
+
+.debug-panel {
+  height: 200px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.debug-content {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+}
+
+.debug-section {
+  flex: 1;
+  padding: 12px;
+  border-right: 1px solid #333;
+}
+
+.debug-section:last-child {
+  border-right: none;
+}
+
+.debug-section h4 {
+  color: #ccc;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.current-state {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4ec9b0;
+}
+
+.stack-list {
+  list-style: none;
+  color: #9cdcfe;
+}
+
+.stack-list li {
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.breakpoint-list {
+  list-style: none;
+}
+
+.breakpoint-list li {
+  padding: 4px 0;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breakpoint-list input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.status-indicator {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-paused {
+  background: #f48771;
+  color: #1e1e1e;
+}
+
+.status-running {
+  background: #89d185;
+  color: #1e1e1e;
+}
+
+.error-message {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(244, 135, 113, 0.2);
+  border: 1px solid #f48771;
+  border-radius: 4px;
+  color: #f48771;
+  font-size: 12px;
+}
+
+.cycle-warning {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #ffc107;
+  font-size: 12px;
+}
+
+.test-panel-toggle {
+  background: #ff9800 !important;
+}
+
+.test-panel-toggle:hover {
+  background: #f57c00 !important;
+}
+
+.test-panel-toggle.active {
+  background: #4caf50 !important;
+}
+
+.test-panel {
+  width: 300px;
+  flex-shrink: 0;
+}

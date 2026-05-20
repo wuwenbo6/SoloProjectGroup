@@ -1,0 +1,32 @@
+{
+  "name": "rubbing-digitization-backend",
+  "version": "1.0.0",
+  "description": "金石拓片数字化平台后端服务",
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "@koa/cors": "^4.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "koa": "^2.15.0",
+    "koa-body": "^6.0.1",
+    "koa-compress": "^5.1.1",
+    "koa-router": "^12.0.1",
+    "koa-static": "^5.0.0",
+    "koa-unless": "^1.0.7",
+    "node-cache": "^5.1.2",
+    "sequelize": "^6.37.1",
+    "sharp": "^0.33.2",
+    "socket.io": "^4.7.4",
+    "sqlite3": "^5.1.7",
+    "tesseract.js": "^5.0.5",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

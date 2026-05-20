@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工业遗产3D复原交互系统</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <h1>工业遗产3D复原交互系统</h1>
+            <div class="header-actions">
+                <select id="equipmentSelect">
+                    <option value="">选择设备</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="">全部类型</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="搜索设备..." class="search-input">
+            </div>
+        </header>
+        
+        <div class="main-container">
+            <aside class="sidebar">
+                <div class="sidebar-tabs">
+                    <button class="tab-btn active" data-tab="equipment">设备信息</button>
+                    <button class="tab-btn" data-tab="database">数据库</button>
+                    <button class="tab-btn" data-tab="collab">协同设计</button>
+                </div>
+                
+                <div class="tab-content active" id="tab-equipment">
+                    <div class="sidebar-section">
+                        <h3>设备基本信息</h3>
+                        <div id="equipmentInfo" class="info-panel">
+                            <p class="empty-tip">请选择设备查看详情</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>部件拆解</h3>
+                        <div id="partsList" class="parts-list">
+                            <p class="empty-tip">暂无部件数据</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>破损标注</h3>
+                        <div id="damageList" class="damage-list">
+                            <p class="empty-tip">暂无破损数据</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>历史档案</h3>
+                        <div id="archiveList" class="archive-list">
+                            <p class="empty-tip">暂无档案数据</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-database">
+                    <div class="sidebar-section">
+                        <h3>工业遗产数据库</h3>
+                        <div class="database-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalEquipment">0</span>
+                                <span class="stat-label">设备总数</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalCategories">0</span>
+                                <span class="stat-label">设备类型</span>
+                            </div>
+                        </div>
+                        <button id="btnSyncDatabase" class="action-btn">同步外部数据</button>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>设备列表</h3>
+                        <div id="databaseEquipmentList" class="equipment-list">
+                            <p class="empty-tip">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-collab">
+                    <div class="sidebar-section">
+                        <h3>协同设计</h3>
+                        <div class="collab-panel">
+                            <div class="collab-status">
+                                <span id="collabStatus" class="status-offline">离线</span>
+                            </div>
+                            <div class="collab-form">
+                                <input type="text" id="collabSessionId" placeholder="会话ID" class="input-field">
+                                <input type="text" id="collabUserName" placeholder="您的昵称" class="input-field">
+                                <div class="collab-buttons">
+                                    <button id="btnCreateSession" class="action-btn">创建会话</button>
+                                    <button id="btnJoinSession" class="action-btn">加入会话</button>
+                                    <button id="btnLeaveSession" class="action-btn secondary">离开</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>在线用户</h3>
+                        <div id="collabUserList" class="user-list">
+                            <p class="empty-tip">暂无在线用户</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>操作记录</h3>
+                        <div id="collabLog" class="log-list">
+                            <p class="empty-tip">暂无操作记录</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <main class="content">
+                <div class="toolbar">
+                    <button id="btnRotate" class="toolbar-btn active">360°旋转</button>
+                    <button id="btnDisassemble" class="toolbar-btn">部件拆解</button>
+                    <button id="btnMarkDamage" class="toolbar-btn">破损标注</button>
+                    <button id="btnRestore" class="toolbar-btn">复原效果</button>
+                    <button id="btnReset" class="toolbar-btn">重置视图</button>
+                </div>
+                
+                <div class="sub-toolbar">
+                    <div class="toolbar-group">
+                        <label>破损分级:</label>
+                        <select id="damageLevelFilter">
+                            <option value="">全部</option>
+                            <option value="critical">严重破损</option>
+                            <option value="severe">重度破损</option>
+                            <option value="moderate">中度破损</option>
+                            <option value="minor">轻度破损</option>
+                            <option value="cosmetic">外观瑕疵</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-group">
+                        <button id="btnRecord" class="toolbar-btn-small">开始录制</button>
+                        <button id="btnPlay" class="toolbar-btn-small">播放</button>
+                        <button id="btnSaveRecord" class="toolbar-btn-small">保存</button>
+                    </div>
+                    <div class="toolbar-group">
+                        <button id="btnRecommend" class="toolbar-btn-small">智能推荐</button>
+                        <select id="performanceMode">
+                            <option value="auto">自动模式</option>
+                            <option value="low">低性能</option>
+                            <option value="medium">中等</option>
+                            <option value="high">高性能</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="canvasContainer" class="canvas-container"></div>
+                
+                <div id="recommendationPanel" class="recommendation-panel hidden">
+                    <div class="panel-header">
+                        <h4>智能复原方案推荐</h4>
+                        <button id="closeRecommend" class="close-btn">×</button>
+                    </div>
+                    <div id="recommendationContent"></div>
+                </div>
+                
+                <div id="recordingIndicator" class="recording-indicator hidden">
+                    <span class="recording-dot"></span>
+                    录制中
+                </div>
+                
+                <div class="info-bar">
+                    <span id="modelInfo">未加载模型</span>
+                    <span id="viewMode">当前模式: 查看模式</span>
+                    <span id="damageStats"></span>
+                    <span id="performanceInfo"></span>
+                </div>
+            </main>
+            
+            <aside class="right-panel">
+                <div class="sidebar-tabs right-tabs">
+                    <button class="tab-btn active" data-tab="restoration">复原方案</button>
+                    <button class="tab-btn" data-tab="scoring">效果评分</button>
+                    <button class="tab-btn" data-tab="review">专家审核</button>
+                </div>
+                
+                <div class="tab-content active" id="tab-restoration">
+                    <div class="sidebar-section">
+                        <h3>复原进度</h3>
+                        <div id="restorationProgress" class="progress-panel">
+                            <p class="empty-tip">暂无复原方案</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>设备对比</h3>
+                        <div id="comparePanel" class="compare-panel">
+                            <div class="compare-item">
+                                <label>设备A:</label>
+                                <select id="compareA">
+                                    <option value="">选择</option>
+                                </select>
+                            </div>
+                            <div class="compare-item">
+                                <label>设备B:</label>
+                                <select id="compareB">
+                                    <option value="">选择</option>
+                                </select>
+                            </div>
+                            <button id="btnCompare" class="compare-btn">开始对比</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-scoring">
+                    <div class="sidebar-section">
+                        <h3>复原效果评分</h3>
+                        <div id="scoreForm" class="scoring-form">
+                            <div class="score-item">
+                                <label>技术准确性 (20%)</label>
+                                <input type="range" id="scoreTechnical" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreTechnicalValue">50</span>
+                            </div>
+                            <div class="score-item">
+                                <label>历史真实性 (25%)</label>
+                                <input type="range" id="scoreHistorical" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreHistoricalValue">50</span>
+                            </div>
+                            <div class="score-item">
+                                <label>材料兼容性 (15%)</label>
+                                <input type="range" id="scoreMaterial" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreMaterialValue">50</span>
+                            </div>
+                            <div class="score-item">
+                                <label>工艺可靠性 (15%)</label>
+                                <input type="range" id="scoreProcess" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreProcessValue">50</span>
+                            </div>
+                            <div class="score-item">
+                                <label>美学效果 (10%)</label>
+                                <input type="range" id="scoreAesthetic" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreAestheticValue">50</span>
+                            </div>
+                            <div class="score-item">
+                                <label>耐久性 (10%)</label>
+                                <input type="range" id="scoreDurability" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreDurabilityValue">50</span>
+                            </div>
+                            <div class="score-item">
+                                <label>成本效益 (5%)</label>
+                                <input type="range" id="scoreCost" min="0" max="100" value="50">
+                                <span class="score-value" id="scoreCostValue">50</span>
+                            </div>
+                            <div class="score-result">
+                                <span class="total-score-label">综合评分:</span>
+                                <span class="total-score" id="totalScore">0</span>
+                                <span class="grade-badge" id="gradeBadge">-</span>
+                            </div>
+                            <input type="text" id="evaluatorName" placeholder="评分人姓名" class="input-field">
+                            <textarea id="evaluationComment" placeholder="评分说明..." class="textarea-field"></textarea>
+                            <button id="btnSubmitScore" class="action-btn full-width">提交评分</button>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>评分历史</h3>
+                        <div id="scoreHistory" class="score-history">
+                            <p class="empty-tip">暂无评分记录</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="tab-review">
+                    <div class="sidebar-section">
+                        <h3>专家审核</h3>
+                        <div id="reviewForm" class="review-form">
+                            <div class="form-group">
+                                <label>专家姓名</label>
+                                <input type="text" id="expertName" placeholder="输入姓名" class="input-field">
+                            </div>
+                            <div class="form-group">
+                                <label>专家职称</label>
+                                <input type="text" id="expertTitle" placeholder="输入职称" class="input-field">
+                            </div>
+                            <div class="form-group">
+                                <label>技术准确性 (1-10)</label>
+                                <input type="number" id="reviewTechnical" min="1" max="10" value="5" class="input-field small">
+                            </div>
+                            <div class="form-group">
+                                <label>历史真实性 (1-10)</label>
+                                <input type="number" id="reviewHistorical" min="1" max="10" value="5" class="input-field small">
+                            </div>
+                            <div class="form-group">
+                                <label>材料兼容性 (1-10)</label>
+                                <input type="number" id="reviewMaterial" min="1" max="10" value="5" class="input-field small">
+                            </div>
+                            <div class="form-group">
+                                <label>工艺可靠性 (1-10)</label>
+                                <input type="number" id="reviewProcess" min="1" max="10" value="5" class="input-field small">
+                            </div>
+                            <div class="form-group">
+                                <label>安全标准 (1-10)</label>
+                                <input type="number" id="reviewSafety" min="1" max="10" value="5" class="input-field small">
+                            </div>
+                            <div class="form-group">
+                                <label>文档完整性 (1-10)</label>
+                                <input type="number" id="reviewDocumentation" min="1" max="10" value="5" class="input-field small">
+                            </div>
+                            <div class="form-group">
+                                <label>审核意见</label>
+                                <textarea id="reviewComment" placeholder="请输入审核意见..." class="textarea-field"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>修改建议</label>
+                                <textarea id="reviewSuggestions" placeholder="请输入修改建议..." class="textarea-field"></textarea>
+                            </div>
+                            <button id="btnSubmitReview" class="action-btn full-width">提交审核</button>
+                            <button id="btnStartWorkflow" class="action-btn secondary full-width">启动审核流程</button>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>审核流程状态</h3>
+                        <div id="workflowStatus" class="workflow-status">
+                            <p class="empty-tip">暂无审核流程</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3>审核记录</h3>
+                        <div id="reviewHistory" class="review-history">
+                            <p class="empty-tip">暂无审核记录</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+    
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

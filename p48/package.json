@@ -1,0 +1,24 @@
+{
+  "name": "pointcloud-registration",
+  "version": "1.0.0",
+  "description": "Electron + Three.js + C++ point cloud registration application",
+  "main": "main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:native": "node-gyp rebuild",
+    "build:native:debug": "node-gyp rebuild --debug",
+    "dev": "electron . --dev"
+  },
+  "keywords": ["electron", "threejs", "pointcloud", "registration"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "node-gyp": "^10.0.1"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "bindings": "^1.5.0",
+    "nan": "^2.18.0"
+  }
+}

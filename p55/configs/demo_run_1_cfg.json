@@ -1,0 +1,12 @@
+{
+  "initial_temp": 25.0,
+  "initial_humidity": 50.0,
+  "initial_oxygen": 20.95,
+  "target_temp": 1280.0,
+  "heating_rate": 150.0,
+  "holding_time": 120.0,
+  "cooling_rate": 100.0,
+  "total_time": 600.0,
+  "clay_type": "porcelain",
+  "atmosphere": "oxidation"
+}

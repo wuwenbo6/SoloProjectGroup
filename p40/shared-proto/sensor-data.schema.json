@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SensorData",
+  "description": "Sensor data message format for MQTT communication",
+  "type": "object",
+  "properties": {
+    "sensor_id": {
+      "type": "string",
+      "description": "Unique identifier for the sensor"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "Unix timestamp in milliseconds"
+    },
+    "temp": {
+      "type": "number",
+      "description": "Temperature reading in Celsius"
+    },
+    "humidity": {
+      "type": "number",
+      "description": "Humidity reading in percentage"
+    }
+  },
+  "required": ["sensor_id", "timestamp", "temp", "humidity"]
+}

@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  nginx-lb:
+    image: nginx:latest
+    container_name: ancientbook-nginx-lb
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - api-node1
+      - api-node2
+      - api-node3
+    networks:
+      - ancientbook-network
+    restart: always
+
+  api-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ancientbook-api-node1
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_ID=node1
+    networks:
+      - ancientbook-network
+    restart: always
+
+  api-node2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ancientbook-api-node2
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_ID=node2
+    networks:
+      - ancientbook-network
+    restart: always
+
+  api-node3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ancientbook-api-node3
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_ID=node3
+    networks:
+      - ancientbook-network
+    restart: always
+
+  redis-cluster:
+    image: redis:7-alpine
+    container_name: ancientbook-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+    networks:
+      - ancientbook-network
+    restart: always
+
+  mysql-rarebook:
+    image: mysql:8.0
+    container_name: ancientbook-mysql-rarebook
+    environment:
+      - MYSQL_ROOT_PASSWORD=AncientBook@2024
+      - MYSQL_DATABASE=ancientbook_rarebook
+    volumes:
+      - ./mysql/rarebook:/var/lib/mysql
+      - ./sql/init_rarebook.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - ancientbook-network
+    restart: always
+
+  mysql-progress:
+    image: mysql:8.0
+    container_name: ancientbook-mysql-progress
+    environment:
+      - MYSQL_ROOT_PASSWORD=AncientBook@2024
+      - MYSQL_DATABASE=ancientbook_progress
+    volumes:
+      - ./mysql/progress:/var/lib/mysql
+      - ./sql/init_progress.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3307:3306"
+    networks:
+      - ancientbook-network
+    restart: always
+
+networks:
+  ancientbook-network:
+    driver: bridge

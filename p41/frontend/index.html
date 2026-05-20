@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车载诊断模拟系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+        
+        .app {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #0f3460;
+            margin-bottom: 20px;
+        }
+        
+        header h1 {
+            color: #e94560;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .connection-status {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .connection-status.connected {
+            background: #00ff88;
+            color: #1a1a2e;
+        }
+        
+        .connection-status.disconnected {
+            background: #e94560;
+            color: #fff;
+        }
+        
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        
+        .gauge-container {
+            width: 150px;
+            text-align: center;
+        }
+        
+        .gauge {
+            position: relative;
+            width: 150px;
+            height: 85px;
+            overflow: hidden;
+        }
+        
+        .gauge-background {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #00ff88 0deg 126deg,
+                #ffd700 126deg 180deg,
+                #e94560 180deg 252deg,
+                #1a1a2e 252deg 360deg
+            );
+            transform: rotate(-126deg);
+        }
+        
+        .gauge-inner {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: #1a1a2e;
+            top: 20px;
+            left: 20px;
+        }
+        
+        .gauge-needle {
+            position: absolute;
+            width: 4px;
+            height: 55px;
+            background: linear-gradient(to top, #fff, transparent);
+            bottom: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(-90deg);
+            transition: transform 0.5s ease-out;
+            border-radius: 2px;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .gauge-value {
+            margin-top: 5px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+            transition: color 0.3s;
+        }
+        
+        .gauge-value.warning {
+            color: #ffd700;
+        }
+        
+        .gauge-value.danger {
+            color: #e94560;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .gauge-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 3px;
+        }
+        
+        .load-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: rgba(233, 69, 96, 0.95);
+            color: #fff;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+        }
+        
+        .load-alert.hidden {
+            display: none;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .panel {
+            background: rgba(15, 52, 96, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #0f3460;
+        }
+        
+        .panel h2 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 10px;
+        }
+        
+        .ecu-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .ecu-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #16213e;
+            color: #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .ecu-btn:hover {
+            background: #0f3460;
+        }
+        
+        .ecu-btn.active {
+            background: #e94560;
+            color: #fff;
+        }
+        
+        .service-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .service-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            color: #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .service-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+        }
+        
+        .service-btn:active {
+            transform: translateY(0);
+        }
+        
+        .custom-request {
+            margin-top: 20px;
+        }
+        
+        .custom-request h3 {
+            margin-bottom: 10px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #1a1a2e;
+            color: #eee;
+            font-family: monospace;
+        }
+        
+        .input-group input:focus {
+            outline: 2px solid #e94560;
+        }
+        
+        .send-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            background: #e94560;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .send-btn:hover {
+            background: #ff6b6b;
+        }
+        
+        .send-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .session-panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 8px;
+            border-left: 4px solid #00ff88;
+        }
+        
+        .session-panel h3 {
+            margin-bottom: 10px;
+            color: #00ff88;
+            font-size: 1rem;
+        }
+        
+        .session-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .session-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #16213e;
+            color: #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .session-btn:hover {
+            background: #0f3460;
+        }
+        
+        .session-btn.active {
+            background: #e94560;
+            color: #fff;
+        }
+        
+        .session-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .write-panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 8px;
+            border-left: 4px solid #e94560;
+        }
+        
+        .write-panel h3 {
+            margin-bottom: 10px;
+            color: #e94560;
+            font-size: 1rem;
+        }
+        
+        .write-panel .hint {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .can-traffic {
+            height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+        
+        .can-message {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+        }
+        
+        .can-message .timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+        
+        .can-message .arbitration-id {
+            color: #e94560;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .can-message .data {
+            color: #00ff88;
+            letter-spacing: 1px;
+        }
+        
+        .response-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .response-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 8px;
+            border-left: 4px solid #e94560;
+        }
+        
+        .response-item.success {
+            border-left-color: #00ff88;
+        }
+        
+        .response-item.error {
+            border-left-color: #e94560;
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .response-ecu {
+            color: #e94560;
+        }
+        
+        .response-service {
+            color: #aaa;
+        }
+        
+        .parsed-data {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .parsed-data h4 {
+            color: #00ff88;
+            margin-bottom: 8px;
+        }
+        
+        .parsed-data p {
+            margin: 5px 0;
+            color: #ccc;
+        }
+        
+        .dtc-list {
+            margin-top: 10px;
+        }
+        
+        .dtc-item {
+            padding: 8px;
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        
+        .dtc-code {
+            color: #e94560;
+            font-weight: bold;
+        }
+        
+        .history-controls {
+            margin-bottom: 15px;
+        }
+        
+        .history-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .replay-controls {
+            padding: 12px;
+            background: rgba(15, 52, 96, 0.5);
+            border-radius: 6px;
+            border: 1px solid #0f3460;
+        }
+        
+        .replay-controls.hidden {
+            display: none;
+        }
+        
+        .replay-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .replay-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .speed-select {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 0.85rem;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #1a1a2e;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            transition: width 0.1s;
+        }
+        
+        .progress-text {
+            font-size: 0.8rem;
+            color: #888;
+            min-width: 60px;
+            text-align: right;
+        }
+        
+        .history-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            background: #0f3460;
+            color: #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .history-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .history-btn.primary {
+            background: #e94560;
+        }
+        
+        .history-btn.primary:hover {
+            background: #16213e;
+        }
+        
+        .data-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .data-item {
+            padding: 15px;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .data-item .label {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .data-item .value {
+            color: #00ff88;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            color: #e94560;
+            padding: 10px;
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #0f3460;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e94560;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="app">
+        <div class="load-alert" :class="{ hidden: !showLoadAlert }">
+            ⚠️ 总线负载过高: {{ busLoad }}%
+        </div>
+        
+        <header>
+            <h1>🚗 车载诊断模拟系统</h1>
+            <div class="header-stats">
+                <span class="connection-status" :class="connected ? 'connected' : 'disconnected'">
+                    {{ connected ? '✓ 已连接' : '✗ 未连接' }}
+                </span>
+                <div class="gauge-container">
+                    <div class="gauge">
+                        <div class="gauge-background"></div>
+                        <div class="gauge-inner"></div>
+                        <div class="gauge-needle" :style="needleStyle"></div>
+                        <div class="gauge-center"></div>
+                    </div>
+                    <div class="gauge-value" :class="loadClass">{{ busLoad }}%</div>
+                    <div class="gauge-label">CAN总线负载率</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-grid">
+            <div class="panel">
+                <h2>📡 诊断请求</h2>
+                
+                <div class="ecu-selector">
+                    <button 
+                        v-for="ecu in ecus" 
+                        :key="ecu.id"
+                        class="ecu-btn"
+                        :class="{ active: selectedEcu === ecu.id }"
+                        @click="selectEcu(ecu.id)"
+                    >
+                        {{ ecu.name }}
+                    </button>
+                </div>
+                
+                <div class="session-panel">
+                    <h3>🔒 诊断会话控制</h3>
+                    <div class="session-buttons">
+                        <button 
+                            v-for="session in sessions" 
+                            :key="session.level"
+                            class="session-btn"
+                            :class="{ active: currentSession === session.level }"
+                            @click="changeSession(session.level)"
+                        >
+                            {{ session.name }}
+                        </button>
+                    </div>
+                    <div class="session-info" v-if="sessionInfo">
+                        <div>当前: {{ sessionInfo.session_name }}</div>
+                        <div>P2: {{ sessionInfo.p2_server_ms }}ms | P2*: {{ sessionInfo.p2_star_server_ms }}ms</div>
+                    </div>
+                </div>
+                
+                <div class="write-panel">
+                    <h3>✏️ 写入数据标识符 (0x2E)</h3>
+                    <div class="hint">需要编程会话才能写入数据</div>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            v-model="writeDid" 
+                            placeholder="DID (如: 1234)"
+                            maxlength="4"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            v-model="writeData" 
+                            placeholder="写入数据 (十六进制)"
+                        >
+                        <button class="send-btn" @click="sendWriteData" :disabled="!connected">
+                            写入
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="service-buttons">
+                    <button class="service-btn" @click="sendDiagnosticSession">
+                        0x10<br>诊断会话控制
+                    </button>
+                    <button class="service-btn" @click="sendEcuReset">
+                        0x11<br>ECU复位
+                    </button>
+                    <button class="service-btn" @click="readDTCs">
+                        0x19<br>读取故障码
+                    </button>
+                    <button class="service-btn" @click="readDataByIdentifier">
+                        0x22<br>读取数据标识符
+                    </button>
+                </div>
+                
+                <div class="custom-request">
+                    <h3>自定义请求</h3>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            v-model="customServiceId" 
+                            placeholder="服务ID (如: 22)"
+                            maxlength="2"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            v-model="customData" 
+                            placeholder="数据 (如: 1001)"
+                        >
+                        <button class="send-btn" @click="sendCustomRequest" :disabled="!connected">
+                            发送
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="history-controls">
+                    <div class="history-buttons">
+                        <button class="history-btn" @click="saveHistory">💾 保存报文</button>
+                        <button class="history-btn primary" @click="startReplay" :disabled="isReplaying">▶️ 开始回放</button>
+                        <button class="history-btn" @click="togglePause" v-if="isReplaying && !isPaused">⏸️ 暂停</button>
+                        <button class="history-btn" @click="togglePause" v-if="isReplaying && isPaused">▶️ 继续</button>
+                        <button class="history-btn" @click="stopReplay" v-if="isReplaying">⏹️ 停止</button>
+                    </div>
+                    <div class="replay-controls" :class="{ hidden: !isReplaying }">
+                        <div class="replay-row">
+                            <span style="color: #888; font-size: 0.85rem;">速度:</span>
+                            <select class="speed-select" v-model="replaySpeed" @change="changeSpeed">
+                                <option value="0.25">0.25x</option>
+                                <option value="0.5">0.5x</option>
+                                <option value="1" selected>1x</option>
+                                <option value="2">2x</option>
+                                <option value="4">4x</option>
+                                <option value="10">10x</option>
+                            </select>
+                        </div>
+                        <div class="replay-row">
+                            <div class="progress-bar">
+                                <div class="progress-fill" :style="{ width: replayProgress + '%' }"></div>
+                            </div>
+                            <span class="progress-text">{{ replayCurrent }} / {{ replayTotal }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📊 CAN总线报文</h2>
+                <div class="can-traffic">
+                    <div 
+                        v-for="(msg, index) in canMessages" 
+                        :key="index"
+                        class="can-message"
+                    >
+                        <span class="timestamp">{{ msg.timestamp.toFixed(3) }}</span>
+                        <span class="arbitration-id">{{ msg.arbitration_id }}</span>
+                        <span class="data">{{ msg.data }}</span>
+                    </div>
+                    <div v-if="canMessages.length === 0" style="color: #666; text-align: center; padding: 20px;">
+                        暂无报文...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📋 诊断响应</h2>
+                <div class="response-panel">
+                    <div 
+                        v-for="(response, index) in responses" 
+                        :key="index"
+                        class="response-item"
+                        :class="{ 
+                            success: response.response && response.response.service_id !== '0x7F',
+                            error: response.response && response.response.service_id === '0x7F'
+                        }"
+                    >
+                        <div class="response-header">
+                            <span class="response-ecu">{{ getEcuName(response.ecu) }}</span>
+                            <span class="response-service">{{ response.request.service_name }}</span>
+                        </div>
+                        <div>
+                            <strong>请求:</strong> {{ response.request.service_id }} {{ response.request.data || '(无数据)' }}
+                        </div>
+                        <div v-if="response.response">
+                            <strong>响应:</strong> {{ response.response.service_name }} ({{ response.response.service_id }})
+                            <div class="parsed-data" v-if="response.response.parsed_data && Object.keys(response.response.parsed_data).length > 0">
+                                <h4>解析数据</h4>
+                                <p v-if="response.response.parsed_data.did">
+                                    DID: {{ response.response.parsed_data.did }} ({{ response.response.parsed_data.did_name }})
+                                </p>
+                                <p v-if="response.response.parsed_data.value">
+                                    值: {{ response.response.parsed_data.value }}
+                                </p>
+                                <p v-if="response.response.parsed_data.nrc">
+                                    NRC: {{ response.response.parsed_data.nrc }} - {{ response.response.parsed_data.nrc_name }}
+                                </p>
+                                <div v-if="response.response.parsed_data.dtcs && response.response.parsed_data.dtcs.length > 0" class="dtc-list">
+                                    <h4>故障码列表</h4>
+                                    <div v-for="(dtc, i) in response.response.parsed_data.dtcs" :key="i" class="dtc-item">
+                                        <span class="dtc-code">{{ dtc.dtc_code }}</span>
+                                        <span>状态: {{ dtc.status }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="responses.length === 0" style="color: #666; text-align: center; padding: 20px;">
+                        暂无响应...
+                    </div>
+                </div>
+                
+                <div v-if="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, onUnmounted } = Vue;
+
+        createApp({
+            setup() {
+                const connected = ref(false);
+                const selectedEcu = ref('engine');
+                const customServiceId = ref('');
+                const customData = ref('');
+                const canMessages = ref([]);
+                const responses = ref([]);
+                const errorMessage = ref('');
+                const currentSession = ref(1);
+                const sessionInfo = ref(null);
+                const writeDid = ref('1234');
+                const writeData = ref('48656C6C6F');
+                const isReplaying = ref(false);
+                const isPaused = ref(false);
+                const replaySpeed = ref(1);
+                const replayCurrent = ref(0);
+                const replayTotal = ref(0);
+                const replayProgress = ref(0);
+                const busLoad = ref(0);
+                const showLoadAlert = ref(false);
+                let loadAlertTimeout = null;
+                let ws = null;
+
+                const ecus = [
+                    { id: 'engine', name: '发动机' },
+                    { id: 'transmission', name: '变速箱' },
+                    { id: 'abs', name: 'ABS' }
+                ];
+
+                const sessions = [
+                    { level: 1, name: '默认会话' },
+                    { level: 2, name: '编程会话' },
+                    { level: 3, name: '扩展会话' }
+                ];
+
+                const needleStyle = Vue.computed(() => {
+                    const angle = -90 + (busLoad.value / 100) * 180;
+                    return { transform: `translateX(-50%) rotate(${angle}deg)` };
+                });
+
+                const loadClass = Vue.computed(() => {
+                    if (busLoad.value >= 70) return 'danger';
+                    if (busLoad.value >= 50) return 'warning';
+                    return '';
+                });
+
+                function getEcuName(ecuId) {
+                    const ecu = ecus.find(e => e.id === ecuId);
+                    return ecu ? ecu.name : ecuId;
+                }
+
+                function selectEcu(ecuId) {
+                    selectedEcu.value = ecuId;
+                }
+
+                function connectWebSocket() {
+                    ws = new WebSocket('ws://localhost:8765');
+
+                    ws.onopen = () => {
+                        connected.value = true;
+                        errorMessage.value = '';
+                        console.log('WebSocket connected');
+                    };
+
+                    ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.type === 'can_message') {
+                            canMessages.value.unshift(data.data);
+                            if (canMessages.value.length > 500) {
+                                canMessages.value.pop();
+                            }
+                        } else if (data.type === 'bus_load') {
+                            busLoad.value = data.load;
+                            if (data.load >= 70) {
+                                showLoadAlert.value = true;
+                                if (loadAlertTimeout) {
+                                    clearTimeout(loadAlertTimeout);
+                                }
+                                loadAlertTimeout = setTimeout(() => {
+                                    showLoadAlert.value = false;
+                                }, 3000);
+                            }
+                        } else if (data.type === 'uds_response') {
+                            responses.value.unshift(data);
+                        } else if (data.type === 'session_changed') {
+                            responses.value.unshift({
+                                ecu: data.ecu,
+                                request: { service_id: '0x10', service_name: 'DIAGNOSTIC_SESSION_CONTROL', data: '0' + sessionInfo?.session_type },
+                                response: data.response
+                            });
+                            if (data.response.parsed_data) {
+                                currentSession.value = data.response.parsed_data.session_type;
+                                sessionInfo.value = data.response.parsed_data;
+                            }
+                        } else if (data.type === 'session_status') {
+                            currentSession.value = data.current_session;
+                        } else if (data.type === 'replay_started') {
+                            isReplaying.value = true;
+                            isPaused.value = false;
+                            replayTotal.value = data.total_messages;
+                            replayCurrent.value = 0;
+                            replayProgress.value = 0;
+                            console.log(`Replay started: ${data.total_messages} messages at ${data.speed}x speed`);
+                        } else if (data.type === 'replay_progress') {
+                            replayCurrent.value = data.current;
+                            replayTotal.value = data.total;
+                            replayProgress.value = data.percentage;
+                        } else if (data.type === 'replay_paused') {
+                            isPaused.value = true;
+                        } else if (data.type === 'replay_resumed') {
+                            isPaused.value = false;
+                        } else if (data.type === 'replay_stopped' || data.type === 'replay_completed') {
+                            isReplaying.value = false;
+                            isPaused.value = false;
+                            if (data.type === 'replay_completed') {
+                                replayProgress.value = 100;
+                                replayCurrent.value = replayTotal.value;
+                            }
+                            console.log(`Replay ${data.type === 'replay_completed' ? 'completed' : 'stopped'}`);
+                        } else if (data.type === 'error') {
+                            errorMessage.value = data.message;
+                            setTimeout(() => errorMessage.value = '', 3000);
+                        } else if (data.type === 'info') {
+                            console.log('Info:', data.message);
+                        }
+                    };
+
+                    ws.onclose = () => {
+                        connected.value = false;
+                        console.log('WebSocket disconnected, reconnecting in 3s...');
+                        setTimeout(connectWebSocket, 3000);
+                    };
+
+                    ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                    };
+                }
+
+                function sendUDSRequest(serviceId, data = '') {
+                    if (!connected.value || !ws) {
+                        errorMessage.value = 'WebSocket未连接';
+                        return;
+                    }
+
+                    const message = {
+                        command: 'send_uds',
+                        ecu: selectedEcu.value,
+                        service_id: parseInt(serviceId, 16),
+                        data: data
+                    };
+
+                    ws.send(JSON.stringify(message));
+                }
+
+                function sendDiagnosticSession() {
+                    sendUDSRequest('10', '01');
+                }
+
+                function sendEcuReset() {
+                    sendUDSRequest('11', '01');
+                }
+
+                function readDTCs() {
+                    sendUDSRequest('19', '02FF');
+                }
+
+                function readDataByIdentifier() {
+                    sendUDSRequest('22', '1001');
+                }
+
+                function changeSession(sessionLevel) {
+                    if (!connected.value || !ws) {
+                        errorMessage.value = 'WebSocket未连接';
+                        return;
+                    }
+
+                    const message = {
+                        command: 'change_session',
+                        ecu: selectedEcu.value,
+                        session_level: sessionLevel
+                    };
+
+                    ws.send(JSON.stringify(message));
+                }
+
+                function sendWriteData() {
+                    if (!connected.value || !ws) {
+                        errorMessage.value = 'WebSocket未连接';
+                        return;
+                    }
+
+                    if (!writeDid.value || writeDid.value.length !== 4) {
+                        errorMessage.value = '请输入有效的4位DID';
+                        setTimeout(() => errorMessage.value = '', 3000);
+                        return;
+                    }
+
+                    const message = {
+                        command: 'send_uds',
+                        ecu: selectedEcu.value,
+                        service_id: 0x2E,
+                        data: writeDid.value + writeData.value
+                    };
+
+                    ws.send(JSON.stringify(message));
+                }
+
+                function sendCustomRequest() {
+                    if (!customServiceId.value) {
+                        errorMessage.value = '请输入服务ID';
+                        return;
+                    }
+                    sendUDSRequest(customServiceId.value, customData.value);
+                }
+
+                function saveHistory() {
+                    if (!connected.value || !ws) return;
+                    ws.send(JSON.stringify({ command: 'save_history', filename: 'can_history.json' }));
+                }
+
+                function startReplay() {
+                    if (!connected.value || !ws) return;
+                    ws.send(JSON.stringify({ 
+                        command: 'start_replay', 
+                        filename: 'can_history.json',
+                        speed: parseFloat(replaySpeed.value)
+                    }));
+                }
+
+                function stopReplay() {
+                    if (!connected.value || !ws) return;
+                    ws.send(JSON.stringify({ command: 'stop_replay' }));
+                }
+
+                function togglePause() {
+                    if (!connected.value || !ws) return;
+                    if (isPaused.value) {
+                        ws.send(JSON.stringify({ command: 'resume_replay' }));
+                    } else {
+                        ws.send(JSON.stringify({ command: 'pause_replay' }));
+                    }
+                }
+
+                function changeSpeed() {
+                    if (!connected.value || !ws || !isReplaying.value) return;
+                    console.log('Speed changed to:', replaySpeed.value, 'x');
+                }
+
+                onMounted(() => {
+                    connectWebSocket();
+                });
+
+                onUnmounted(() => {
+                    if (ws) {
+                        ws.close();
+                    }
+                });
+
+                return {
+                    connected,
+                    selectedEcu,
+                    customServiceId,
+                    customData,
+                    canMessages,
+                    responses,
+                    errorMessage,
+                    currentSession,
+                    sessionInfo,
+                    writeDid,
+                    writeData,
+                    isReplaying,
+                    isPaused,
+                    replaySpeed,
+                    replayCurrent,
+                    replayTotal,
+                    replayProgress,
+                    busLoad,
+                    showLoadAlert,
+                    needleStyle,
+                    loadClass,
+                    ecus,
+                    sessions,
+                    getEcuName,
+                    selectEcu,
+                    sendDiagnosticSession,
+                    sendEcuReset,
+                    readDTCs,
+                    readDataByIdentifier,
+                    sendCustomRequest,
+                    changeSession,
+                    sendWriteData,
+                    saveHistory,
+                    startReplay,
+                    stopReplay,
+                    togglePause,
+                    changeSpeed
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

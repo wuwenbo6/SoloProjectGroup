@@ -1,0 +1,63 @@
+# Test Case: Transition_Coverage
+# Machine: TrafficLight
+# Generated: 2024-01-15T00:00:00.000Z
+# Steps: 6
+
+test Transition_Coverage {
+    initial: Red
+    steps: [
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+    ]
+    expected: {
+        finalState: "Red"
+    }
+}
+
+# Event sequence: TimerTick → TimerTick → TimerTick → TimerTick → TimerTick → TimerTick
+
+# ====================================
+
+# Test Case: State_Coverage
+# Machine: TrafficLight
+# Generated: 2024-01-15T00:00:00.000Z
+# Steps: 3
+
+test State_Coverage {
+    initial: Red
+    steps: [
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+    ]
+    expected: {
+        finalState: "Red"
+    }
+}
+
+# Event sequence: TimerTick → TimerTick → TimerTick
+
+# ====================================
+
+# Test Case: Round_Trip
+# Machine: TrafficLight
+# Generated: 2024-01-15T00:00:00.000Z
+# Steps: 3
+
+test Round_Trip {
+    initial: Red
+    steps: [
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+        sendEvent("TimerTick")
+    ]
+    expected: {
+        finalState: "Red"
+    }
+}
+
+# Event sequence: TimerTick → TimerTick → TimerTick

@@ -1,0 +1,39 @@
+{
+  "report_title": "陕西皮影-关公 材质分析报告",
+  "artifact_info": {
+    "artifact_id": "SHADOW001",
+    "artifact_name": "陕西皮影-关公",
+    "origin_location": "陕西西安",
+    "historical_period": "清代",
+    "estimated_year": 1880,
+    "material_type": "牛皮",
+    "current_condition": "良好"
+  },
+  "analysis_date": "2026-05-17 20:01:45",
+  "analysis_results": {
+    "material_properties": {
+      "牛皮": {
+        "count": 4,
+        "properties": {
+          "thickness": {
+            "mean": 1.075
+          },
+          "tensile_strength": {
+            "mean": 27.175
+          }
+        }
+      }
+    },
+    "aging_predictions": {
+      "predicted_age": [
+        145.5
+      ]
+    }
+  },
+  "key_findings": [
+    "牛皮材质样本数: 4",
+    "预测平均老化年限: 145.5年"
+  ],
+  "recommendations": "建议根据材质特性制定个性化保护方案\n定期监测环境温湿度变化\n建立材质状态跟踪档案\n根据老化预测结果，提前采取预防性保护措施",
+  "version": "1.0"
+}

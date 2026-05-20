@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ancientbook.rarebook.mapper.RareBookMapper">
+
+    <resultMap id="BaseResultMap" type="com.ancientbook.rarebook.entity.RareBook">
+        <id column="id" property="id"/>
+        <result column="book_code" property="bookCode"/>
+        <result column="book_name" property="bookName"/>
+        <result column="author" property="author"/>
+        <result column="dynasty" property="dynasty"/>
+        <result column="publication_year" property="publicationYear"/>
+        <result column="edition" property="edition"/>
+        <result column="material" property="material"/>
+        <result column="page_count" property="pageCount"/>
+        <result column="dimensions" property="dimensions"/>
+        <result column="condition_level" property="conditionLevel"/>
+        <result column="condition_desc" property="conditionDesc"/>
+        <result column="location" property="location"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, book_code, book_name, author, dynasty, publication_year, edition, material,
+        page_count, dimensions, condition_level, condition_desc, location, status, remark,
+        create_time, update_time, create_by, update_by, deleted
+    </sql>
+
+    <insert id="insert" parameterType="com.ancientbook.rarebook.entity.RareBook" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rare_book (book_code, book_name, author, dynasty, publication_year, edition, material,
+                              page_count, dimensions, condition_level, condition_desc, location, status, remark,
+                              create_time, update_time, create_by, update_by, deleted)
+        VALUES (#{bookCode}, #{bookName}, #{author}, #{dynasty}, #{publicationYear}, #{edition}, #{material},
+                #{pageCount}, #{dimensions}, #{conditionLevel}, #{conditionDesc}, #{location}, #{status}, #{remark},
+                NOW(), NOW(), #{createBy}, #{updateBy}, 0)
+    </insert>
+
+    <update id="updateById" parameterType="com.ancientbook.rarebook.entity.RareBook">
+        UPDATE rare_book
+        <set>
+            <if test="bookCode != null">book_code = #{bookCode},</if>
+            <if test="bookName != null">book_name = #{bookName},</if>
+            <if test="author != null">author = #{author},</if>
+            <if test="dynasty != null">dynasty = #{dynasty},</if>
+            <if test="publicationYear != null">publication_year = #{publicationYear},</if>
+            <if test="edition != null">edition = #{edition},</if>
+            <if test="material != null">material = #{material},</if>
+            <if test="pageCount != null">page_count = #{pageCount},</if>
+            <if test="dimensions != null">dimensions = #{dimensions},</if>
+            <if test="conditionLevel != null">condition_level = #{conditionLevel},</if>
+            <if test="conditionDesc != null">condition_desc = #{conditionDesc},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = NOW(),
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE rare_book SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM rare_book
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectByBookCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM rare_book
+        WHERE book_code = #{bookCode} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM rare_book
+        WHERE deleted = 0
+        <if test="bookCode != null and bookCode != ''">
+            AND book_code LIKE CONCAT('%', #{bookCode}, '%')
+        </if>
+        <if test="bookName != null and bookName != ''">
+            AND book_name LIKE CONCAT('%', #{bookName}, '%')
+        </if>
+        <if test="author != null and author != ''">
+            AND author LIKE CONCAT('%', #{author}, '%')
+        </if>
+        <if test="dynasty != null and dynasty != ''">
+            AND dynasty = #{dynasty}
+        </if>
+        <if test="conditionLevel != null">
+            AND condition_level = #{conditionLevel}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{pageSize} OFFSET #{(pageNum - 1) * pageSize}
+    </select>
+
+    <select id="selectCount" resultType="long">
+        SELECT COUNT(*)
+        FROM rare_book
+        WHERE deleted = 0
+        <if test="bookCode != null and bookCode != ''">
+            AND book_code LIKE CONCAT('%', #{bookCode}, '%')
+        </if>
+        <if test="bookName != null and bookName != ''">
+            AND book_name LIKE CONCAT('%', #{bookName}, '%')
+        </if>
+        <if test="author != null and author != ''">
+            AND author LIKE CONCAT('%', #{author}, '%')
+        </if>
+        <if test="dynasty != null and dynasty != ''">
+            AND dynasty = #{dynasty}
+        </if>
+        <if test="conditionLevel != null">
+            AND condition_level = #{conditionLevel}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,19 @@
+machine CycleTest {
+    initial: A
+    
+    state A {
+        on Next -> B
+    }
+    
+    state B {
+        on Next -> C
+    }
+    
+    state C {
+        on Next -> A
+    }
+}
+
+action logState {
+    print("State changed")
+}

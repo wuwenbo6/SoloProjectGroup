@@ -1,0 +1,32 @@
+{
+  "test_dataframe": {
+    "path": ".cache/7eaf5a5118c9258917a3b7f73ad62bf2.pkl",
+    "size_bytes": 91068,
+    "created_at": "2026-05-17T20:16:55.503060",
+    "expire_time": "2026-05-17T20:17:55.503064"
+  },
+  "museum:all": {
+    "path": ".cache/6d72cbb863678129435e37dd3ee24066.pkl",
+    "size_bytes": 1733,
+    "created_at": "2026-05-17T20:17:13.273665",
+    "expire_time": "2026-05-17T20:47:13.273669"
+  },
+  "pigment:all": {
+    "path": ".cache/2043bddf0e5ffe6e24b0bb58ef2559a1.pkl",
+    "size_bytes": 1212,
+    "created_at": "2026-05-17T20:17:14.814773",
+    "expire_time": "2026-05-17T20:47:14.814780"
+  },
+  "loader:load_file:2c074c5402dffe4977e180efa0fe8d76": {
+    "path": ".cache/e3d9dfb3d7fa078dc2ae037f4ec89ab8.pkl",
+    "size_bytes": 43553,
+    "created_at": "2026-05-17T20:17:14.872076",
+    "expire_time": "2026-05-17T21:17:14.872085"
+  },
+  "loader:load_file:d2b5a7fdb08453b55a93a69223b9be51": {
+    "path": ".cache/3d8878e12de23d615d80de7a70e35048.pkl",
+    "size_bytes": 418043,
+    "created_at": "2026-05-17T20:17:15.122372",
+    "expire_time": "2026-05-17T21:17:15.122378"
+  }
+}
