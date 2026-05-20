@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package tracetrace;
+
+option go_package = "github.com/tracetrace/proto";
+
+message Status {
+  string message = 1;
+  int32 code = 2;
+}
+
+message KeyValue {
+  string key = 1;
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double double_value = 4;
+    bool bool_value = 5;
+  }
+}
+
+message Event {
+  int64 time_unix_nano = 1;
+  string name = 2;
+  repeated KeyValue attributes = 3;
+}
+
+message Link {
+  string trace_id = 1;
+  string span_id = 2;
+  string trace_state = 3;
+  repeated KeyValue attributes = 4;
+}
+
+message Span {
+  string trace_id = 1;
+  string span_id = 2;
+  string parent_span_id = 3;
+  string trace_state = 4;
+  string name = 5;
+  string kind = 6;
+  int64 start_time_unix_nano = 7;
+  int64 end_time_unix_nano = 8;
+  repeated KeyValue attributes = 9;
+  repeated Event events = 10;
+  repeated Link links = 11;
+  Status status = 12;
+  string service_name = 13;
+  string resource_attributes_json = 14;
+}
+
+message ExportTraceServiceRequest {
+  repeated Span spans = 1;
+}
+
+message ExportTraceServiceResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+service TraceService {
+  rpc Export(ExportTraceServiceRequest) returns (ExportTraceServiceResponse);
+}

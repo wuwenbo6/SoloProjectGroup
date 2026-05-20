@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    container_name: trace-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: traces
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: default
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./docker/clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - trace-network
+
+  collector:
+    build:
+      context: ./collector
+      dockerfile: ../docker/collector/Dockerfile
+    container_name: trace-collector
+    ports:
+      - "4317:4317"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_ADDR: clickhouse:9000
+      CLICKHOUSE_DB: traces
+    networks:
+      - trace-network
+    restart: unless-stopped
+
+  query-service:
+    build:
+      context: ./query-service
+      dockerfile: ../docker/query-service/Dockerfile
+    container_name: trace-query-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_ADDR: clickhouse:9000
+      CLICKHOUSE_DB: traces
+    networks:
+      - trace-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    container_name: trace-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - query-service
+    networks:
+      - trace-network
+    restart: unless-stopped
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: trace-ml-service
+    ports:
+      - "5000:5000"
+    environment:
+      DEBUG: "false"
+      PORT: "5000"
+      ML_SERVICE_URL: "http://ml-service:5000"
+    volumes:
+      - ./ml-service/models:/app/models
+    networks:
+      - trace-network
+    restart: unless-stopped
+
+volumes:
+  clickhouse_data:
+
+networks:
+  trace-network:
+    driver: bridge

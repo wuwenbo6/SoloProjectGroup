@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分布式调用链追踪平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>分布式调用链追踪平台</h1>
+        </header>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>服务筛选:</label>
+                <select id="serviceFilter">
+                    <option value="">全部服务</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>时间范围:</label>
+                <select id="timeRange">
+                    <option value="1h">最近1小时</option>
+                    <option value="6h">最近6小时</option>
+                    <option value="24h">最近24小时</option>
+                    <option value="7d">最近7天</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button id="refreshBtn" class="btn btn-primary">刷新数据</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="topology">服务拓扑图</button>
+            <button class="tab-btn" data-tab="traces">Trace列表</button>
+            <button class="tab-btn" data-tab="flame">火焰图</button>
+        </div>
+
+        <div class="tab-content">
+            <div id="topology-tab" class="tab-pane active">
+                <div class="topology-container">
+                    <div class="timeline-header">
+                        <div class="timeline-controls">
+                            <button id="playBtn" class="btn btn-timeline" title="播放/暂停">
+                                <span id="playIcon">▶</span>
+                            </button>
+                            <button id="stepBackBtn" class="btn btn-timeline" title="后退一步">
+                                ⏮
+                            </button>
+                            <button id="stepForwardBtn" class="btn btn-timeline" title="前进一步">
+                                ⏭
+                            </button>
+                            <button id="resetBtn" class="btn btn-timeline" title="重置到当前时间">
+                                ⏹
+                            </button>
+                        </div>
+                        <div class="timeline-info">
+                            <span id="currentTimeLabel" class="time-label">--</span>
+                            <span id="windowLabel" class="time-window">时间窗口: 5分钟</span>
+                        </div>
+                        <div class="timeline-settings">
+                            <select id="windowSizeSelect" class="select-small">
+                                <option value="1">1分钟</option>
+                                <option value="5" selected>5分钟</option>
+                                <option value="15">15分钟</option>
+                                <option value="30">30分钟</option>
+                                <option value="60">1小时</option>
+                            </select>
+                            <select id="playSpeedSelect" class="select-small">
+                                <option value="0.5">0.5x</option>
+                                <option value="1" selected>1x</option>
+                                <option value="2">2x</option>
+                                <option value="5">5x</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="timeline-container">
+                        <div class="timeline-slider">
+                            <input type="range" id="timelineSlider" min="0" max="100" value="100" step="1">
+                        </div>
+                        <div class="timeline-labels">
+                            <span id="startTimeLabel" class="timeline-start">--</span>
+                            <span id="endTimeLabel" class="timeline-end">--</span>
+                        </div>
+                        <div class="timeline-marker" id="timelineMarker"></div>
+                    </div>
+
+                    <div id="cy" class="cytoscape-container"></div>
+                    
+                    <div class="topology-legend">
+                        <h4>图例</h4>
+                        <div class="legend-item">
+                            <span class="legend-node"></span>
+                            <span>服务节点</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-edge"></span>
+                            <span>服务调用</span>
+                        </div>
+                        <div class="legend-divider"></div>
+                        <h4>统计信息</h4>
+                        <div class="legend-stat">
+                            <span>服务数量:</span>
+                            <span id="statNodeCount" class="stat-value">0</span>
+                        </div>
+                        <div class="legend-stat">
+                            <span>调用关系:</span>
+                            <span id="statEdgeCount" class="stat-value">0</span>
+                        </div>
+                        <div class="legend-stat">
+                            <span>总调用量:</span>
+                            <span id="statCallCount" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="traces-tab" class="tab-pane">
+                <div class="traces-container">
+                    <div class="table-header">
+                        <h3>Trace列表</h3>
+                        <span id="traceCount" class="count-badge">0 条记录</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="trace-table">
+                            <thead>
+                                <tr>
+                                    <th>Trace ID</th>
+                                    <th>服务</th>
+                                    <th>Span数量</th>
+                                    <th>错误数</th>
+                                    <th>持续时间</th>
+                                    <th>开始时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="traceBody">
+                                <tr>
+                                    <td colspan="7" class="loading">加载中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="flame-tab" class="tab-pane">
+                <div class="flame-container">
+                    <div class="flame-header">
+                        <h3>火焰图</h3>
+                        <div class="trace-selector">
+                            <label>选择Trace:</label>
+                            <select id="flameTraceSelect">
+                                <option value="">请先选择一个Trace</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="flameGraph" class="flame-graph">
+                        <div class="empty-state">请从Trace列表选择一个Trace查看火焰图</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="traceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Trace详情</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="traceDetail"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

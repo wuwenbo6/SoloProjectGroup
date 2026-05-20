@@ -1,0 +1,10 @@
+[workspace]
+members = [
+  "native/audio-engine",
+  "native/vst3-host",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

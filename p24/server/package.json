@@ -1,0 +1,23 @@
+{
+  "name": "space-sandbox-server",
+  "version": "1.0.0",
+  "description": "2.5D太空沙盒游戏后端",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "ws": "^8.14.0",
+    "level": "^8.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.5",
+    "@types/uuid": "^9.0.2",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1"
+  }
+}

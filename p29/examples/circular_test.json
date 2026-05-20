@@ -1,0 +1,37 @@
+{
+  "name": "circular-test-package",
+  "version": "1.0.0",
+  "dependencies": {
+    "package-a": {
+      "version": "1.0.0",
+      "dependencies": {
+        "package-b": {
+          "version": "1.0.0",
+          "dependencies": {
+            "package-a": {
+              "version": "1.0.0"
+            }
+          }
+        }
+      }
+    },
+    "package-c": {
+      "version": "2.0.0",
+      "dependencies": {
+        "package-d": {
+          "version": "2.0.0",
+          "dependencies": {
+            "package-e": {
+              "version": "2.0.0",
+              "dependencies": {
+                "package-c": {
+                  "version": "2.0.0"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
