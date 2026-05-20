@@ -1,0 +1,29 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.login-card h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #8b5a2b;
+}
+
+.login-card p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}

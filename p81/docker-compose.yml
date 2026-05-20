@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: dye-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dye_auth
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  dye-auth:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-auth
+    container_name: dye-auth
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/dye_auth?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+
+  dye-formula:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-formula
+    container_name: dye-formula
+    ports:
+      - "8002:8002"
+    depends_on:
+      - mysql
+
+  dye-traceability:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-traceability
+    container_name: dye-traceability
+    ports:
+      - "8003:8003"
+    depends_on:
+      - mysql
+
+  dye-quality:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-quality
+    container_name: dye-quality
+    ports:
+      - "8004:8004"
+    depends_on:
+      - mysql
+
+  dye-batch:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-batch
+    container_name: dye-batch
+    ports:
+      - "8005:8005"
+    depends_on:
+      - mysql
+
+  dye-thirdparty:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-thirdparty
+    container_name: dye-thirdparty
+    ports:
+      - "8006:8006"
+    depends_on:
+      - mysql
+
+  dye-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-gateway
+    container_name: dye-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - dye-auth
+      - dye-formula
+      - dye-traceability
+      - dye-quality
+      - dye-batch
+      - dye-thirdparty

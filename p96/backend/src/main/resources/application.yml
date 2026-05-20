@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  datasource:
+    user:
+      jdbc-url: jdbc:mysql://localhost:3306/rubbing_user?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    rubbing:
+      jdbc-url: jdbc:mysql://localhost:3306/rubbing_data?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    interpretation:
+      jdbc-url: jdbc:mysql://localhost:3306/rubbing_interpretation?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+jwt:
+  secret: rubbing-platform-secret-key-2024-for-jwt-token-generation
+  expiration: 86400000
+
+file:
+  upload-path: /Users/wuwenbo/Documents/trae_projects/SoloProjectGroup/p96/database/uploads

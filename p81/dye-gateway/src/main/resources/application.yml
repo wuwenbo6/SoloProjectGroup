@@ -1,0 +1,38 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: dye-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: dye-auth
+          uri: http://localhost:8001
+          predicates:
+            - Path=/api/auth/**
+
+        - id: dye-formula
+          uri: http://localhost:8002
+          predicates:
+            - Path=/api/formula/**
+
+        - id: dye-traceability
+          uri: http://localhost:8003
+          predicates:
+            - Path=/api/trace/**
+
+        - id: dye-quality
+          uri: http://localhost:8004
+          predicates:
+            - Path=/api/quality/**
+
+        - id: dye-batch
+          uri: http://localhost:8005
+          predicates:
+            - Path=/api/batch/**
+
+        - id: dye-thirdparty
+          uri: http://localhost:8006
+          predicates:
+            - Path=/api/thirdparty/**

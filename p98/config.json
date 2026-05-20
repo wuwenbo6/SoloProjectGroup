@@ -1,0 +1,32 @@
+{
+    "simulation": {
+        "duration": 168,
+        "time_step": 1,
+        "method": "odeint"
+    },
+    "initial_conditions": {
+        "temperature": 25.0,
+        "humidity": 0.65,
+        "biomass": 0.15,
+        "substrate": 120.0,
+        "product": 0.0,
+        "co2": 0.0
+    },
+    "kinetics": {
+        "mu_max": 0.3,
+        "ks": 5.0,
+        "y_xs": 0.5,
+        "y_ps": 1.2,
+        "m_s": 0.01,
+        "k_heat": 25.0,
+        "ua": 10.0,
+        "mass": 1000.0,
+        "cp": 4.18,
+        "env_temp": 22.0,
+        "target_hum": 0.7,
+        "evap_rate": 0.005,
+        "vent_rate": 0.01
+    },
+    "description": "古法酿酒发酵过程仿真配置参数",
+    "version": "1.0.0"
+}

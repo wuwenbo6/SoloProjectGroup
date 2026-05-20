@@ -1,0 +1,90 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+.page-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  height: 60px;
+  background: #fff;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+}
+
+.page-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.sidebar {
+  width: 300px;
+  background: #fff;
+  border-left: 1px solid #e6e6e6;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.annotation-box {
+  position: absolute;
+  border: 2px solid #409eff;
+  background: rgba(64, 158, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #67c23a;
+    background: rgba(103, 194, 58, 0.15);
+  }
+
+  &.selected {
+    border-color: #e6a23c;
+    background: rgba(230, 162, 60, 0.2);
+  }
+}

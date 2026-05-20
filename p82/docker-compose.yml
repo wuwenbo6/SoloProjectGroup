@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  mysql-firing:
+    image: mysql:8.0
+    container_name: ceramic-firing-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ceramic_firing
+    ports:
+      - "3306:3306"
+    volumes:
+      - firing-db-data:/var/lib/mysql
+    networks:
+      - ceramic-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mysql-kiln:
+    image: mysql:8.0
+    container_name: ceramic-kiln-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ceramic_kiln_temp
+    ports:
+      - "3307:3306"
+    volumes:
+      - kiln-db-data:/var/lib/mysql
+    networks:
+      - ceramic-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mysql-process:
+    image: mysql:8.0
+    container_name: ceramic-process-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ceramic_process
+    ports:
+      - "3308:3306"
+    volumes:
+      - process-db-data:/var/lib/mysql
+    networks:
+      - ceramic-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  mysql-auth:
+    image: mysql:8.0
+    container_name: ceramic-auth-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ceramic_auth
+    ports:
+      - "3309:3306"
+    volumes:
+      - auth-db-data:/var/lib/mysql
+    networks:
+      - ceramic-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  ceramic-api:
+    build: .
+    container_name: ceramic-api-service
+    ports:
+      - "8080:8080"
+    environment:
+      - FIRING_DB_DSN=root:rootpassword@tcp(mysql-firing:3306)/ceramic_firing?charset=utf8mb4&parseTime=True&loc=Local
+      - KILN_TEMP_DB_DSN=root:rootpassword@tcp(mysql-kiln:3306)/ceramic_kiln_temp?charset=utf8mb4&parseTime=True&loc=Local
+      - PROCESS_DB_DSN=root:rootpassword@tcp(mysql-process:3306)/ceramic_process?charset=utf8mb4&parseTime=True&loc=Local
+      - AUTH_DB_DSN=root:rootpassword@tcp(mysql-auth:3306)/ceramic_auth?charset=utf8mb4&parseTime=True&loc=Local
+      - SERVER_PORT=8080
+      - JWT_SECRET=ceramic-secret-key-2024-production
+      - THIRD_PARTY_API=https://api.test-lab.com/v1
+      - THIRD_PARTY_KEY=test-api-key
+    depends_on:
+      mysql-firing:
+        condition: service_healthy
+      mysql-kiln:
+        condition: service_healthy
+      mysql-process:
+        condition: service_healthy
+      mysql-auth:
+        condition: service_healthy
+    networks:
+      - ceramic-network
+
+volumes:
+  firing-db-data:
+  kiln-db-data:
+  process-db-data:
+  auth-db-data:
+
+networks:
+  ceramic-network:
+    driver: bridge

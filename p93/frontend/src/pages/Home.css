@@ -1,0 +1,123 @@
+.home-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.home-header h1 {
+  font-size: 32px;
+  color: #8b5a2b;
+  margin-bottom: 10px;
+}
+
+.home-header p {
+  color: #666;
+  font-size: 16px;
+}
+
+.craft-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.craft-card {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+  padding: 0;
+}
+
+.craft-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.craft-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.craft-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.craft-content {
+  padding: 20px;
+}
+
+.craft-content h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.craft-desc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.craft-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #888;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.author img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state p {
+  color: #888;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .home-header h1 {
+    font-size: 24px;
+  }
+
+  .craft-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .craft-content {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-header {
+    padding: 0 10px;
+  }
+
+  .home-header p {
+    font-size: 14px;
+  }
+}

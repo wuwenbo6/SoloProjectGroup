@@ -1,0 +1,17 @@
+{
+  "total": 3518,
+  "by_level": {
+    "WARNING": 2655,
+    "CRITICAL": 863
+  },
+  "by_parameter": {
+    "kiln_temperature": 832,
+    "humidity": 440,
+    "oxygen_content": 715,
+    "body_temperature": 765,
+    "temperature_gradient": 766
+  },
+  "by_kiln": {},
+  "critical_count": 863,
+  "warning_count": 2655
+}

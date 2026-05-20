@@ -1,0 +1,5 @@
+FROM openjdk:11-jdk-slim
+VOLUME /tmp
+COPY dye-quality/target/dye-quality-1.0.0.jar app.jar
+EXPOSE 8004
+ENTRYPOINT ["java","-jar","/app.jar"]

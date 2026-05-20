@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.dye.traceability</groupId>
+        <artifactId>dye-traceability-system</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>dye-formula</artifactId>
+    <packaging>jar</packaging>
+    <name>dye-formula</name>
+    <description>染料配方模块 - 配方录入与管理</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.dye.traceability</groupId>
+            <artifactId>dye-common</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

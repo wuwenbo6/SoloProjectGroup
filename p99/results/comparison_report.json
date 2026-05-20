@@ -1,0 +1,231 @@
+{
+  "temperature_comparison": {
+    "common_time_range": [
+      0.0,
+      86400.0
+    ],
+    "num_points": 1441,
+    "overall_metrics": {
+      "mae": 182.4122745469967,
+      "rmse": 417.3862219295752,
+      "mape": 92.51130918368791,
+      "r2": 0.8152674244961075,
+      "correlation": 0.9029216048451314,
+      "max_error": 1420.6819999999998,
+      "bias": 181.92798056904928
+    },
+    "time_shift_samples": 0,
+    "time_shift_seconds": 0.0,
+    "error_distribution": {
+      "mean": 181.92798056904928,
+      "std": 375.6507262640554,
+      "percentiles": {
+        "p10": -0.8986666666667134,
+        "p25": -0.16320000000001755,
+        "p50": 0.4795999999998912,
+        "p75": 33.370799999999974,
+        "p90": 876.276
+      },
+      "skewness": 1.968169589713813,
+      "kurtosis": 2.4915534243300614
+    },
+    "phase_analysis": [
+      {
+        "phase_name": "drying",
+        "start_time": 0,
+        "end_time": 7200,
+        "metrics": {
+          "mae": 5.787301377410471,
+          "rmse": 20.443922584444277,
+          "mape": 2.6035239773289556,
+          "r2": 0.9160161239515175
+        },
+        "time_shift": 0.0,
+        "amplitude_ratio": 1.0133719213738335
+      },
+      {
+        "phase_name": "heating",
+        "start_time": 7200,
+        "end_time": 18000,
+        "metrics": {
+          "mae": 0.6601060773480311,
+          "rmse": 0.8585324535078254,
+          "mape": 0.10595876554390363,
+          "r2": 0.9999552533845869
+        },
+        "time_shift": 0.0,
+        "amplitude_ratio": 1.000365700360322
+      },
+      {
+        "phase_name": "decomposition",
+        "start_time": 18000,
+        "end_time": 23400,
+        "metrics": {
+          "mae": 0.5399032967033008,
+          "rmse": 0.6636661232565287,
+          "mape": 0.05422070755321555,
+          "r2": 0.9999722464073515
+        },
+        "time_shift": 0.0,
+        "amplitude_ratio": 0.9997779993316294
+      },
+      {
+        "phase_name": "high_heating",
+        "start_time": 23400,
+        "end_time": 34560,
+        "metrics": {
+          "mae": 0.5554279263220417,
+          "rmse": 0.6750441086385682,
+          "mape": 0.04383740823404499,
+          "r2": 0.9999670698476236
+        },
+        "time_shift": 0.0,
+        "amplitude_ratio": 1.0000165563904928
+      },
+      {
+        "phase_name": "soaking",
+        "start_time": 34560,
+        "end_time": 43200,
+        "metrics": {
+          "mae": 1.1958547126436974,
+          "rmse": 1.8013614195892995,
+          "mape": 0.07862341599715122,
+          "r2": 0.9756850655995551
+        },
+        "time_shift": 0.0,
+        "amplitude_ratio": 1.0000288613335386
+      },
+      {
+        "phase_name": "cooling",
+        "start_time": 43200,
+        "end_time": 64860,
+        "metrics": {
+          "mae": 0.9459574585635183,
+          "rmse": 1.443652550556412,
+          "mape": 0.11144977947876383,
+          "r2": 0.999986478406449
+        },
+        "time_shift": 0.0,
+        "amplitude_ratio": 1.00042419398613
+      }
+    ],
+    "simulation_phases": [
+      {
+        "phase_name": "drying",
+        "description": "干燥阶段",
+        "start_time": 0,
+        "end_time": 7200,
+        "duration": 7200
+      },
+      {
+        "phase_name": "heating",
+        "description": "升温阶段",
+        "start_time": 7200,
+        "end_time": 18000,
+        "duration": 10800
+      },
+      {
+        "phase_name": "decomposition",
+        "description": "分解阶段",
+        "start_time": 18000,
+        "end_time": 23400,
+        "duration": 5400
+      },
+      {
+        "phase_name": "high_heating",
+        "description": "高温阶段",
+        "start_time": 23400,
+        "end_time": 34560,
+        "duration": 11160
+      },
+      {
+        "phase_name": "soaking",
+        "description": "保温阶段",
+        "start_time": 34560,
+        "end_time": 43200,
+        "duration": 8640
+      },
+      {
+        "phase_name": "cooling",
+        "description": "冷却阶段",
+        "start_time": 43200,
+        "end_time": 64860,
+        "duration": 21660
+      },
+      {
+        "phase_name": "drying",
+        "description": "干燥阶段",
+        "start_time": 64860,
+        "end_time": 86400,
+        "duration": 21540
+      }
+    ],
+    "real_phases": [
+      {
+        "phase_name": "drying",
+        "description": "干燥阶段",
+        "start_time": 600.0,
+        "end_time": 7500.0,
+        "duration": 6900.0
+      },
+      {
+        "phase_name": "heating",
+        "description": "升温阶段",
+        "start_time": 7500.0,
+        "end_time": 18300.0,
+        "duration": 10800.0
+      },
+      {
+        "phase_name": "decomposition",
+        "description": "分解阶段",
+        "start_time": 18300.0,
+        "end_time": 23400.0,
+        "duration": 5100.0
+      },
+      {
+        "phase_name": "high_heating",
+        "description": "高温阶段",
+        "start_time": 23400.0,
+        "end_time": 34800.0,
+        "duration": 11400.0
+      },
+      {
+        "phase_name": "soaking",
+        "description": "保温阶段",
+        "start_time": 34800.0,
+        "end_time": 42600.0,
+        "duration": 7800.0
+      },
+      {
+        "phase_name": "cooling",
+        "description": "冷却阶段",
+        "start_time": 42600.0,
+        "end_time": 86400.0,
+        "duration": 43800.0
+      }
+    ]
+  },
+  "humidity_comparison": {
+    "overall_metrics": {
+      "mae": 32.94547759619724,
+      "rmse": 53.614941517925686,
+      "mape": 694021115.2645968,
+      "r2": 0.001142596579954809,
+      "correlation": 0.03380231619216069
+    }
+  },
+  "overall_quality": {
+    "quality_level": "needs_improvement",
+    "score": 0.0
+  },
+  "recommendations": [
+    "仿真存在系统性偏差，建议检查热传导参数校准",
+    "温度预测误差较大，建议优化温度曲线参数"
+  ],
+  "summary_statistics": {
+    "accuracy_level": "low",
+    "precision_level": "low",
+    "bias_level": "high",
+    "total_deviation": 417.3862219295752
+  }
+}
