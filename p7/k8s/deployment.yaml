@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: latex-collab-backend
+  labels:
+    app: latex-collab
+    component: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: latex-collab
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: latex-collab
+        component: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3001"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: component
+                  operator: In
+                  values:
+                  - backend
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: backend
+        image: latex-collab-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 3001
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: latex-collab-config
+              key: redis_host
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: latex-collab-config
+              key: postgres_host
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: latex-collab-secrets
+              key: postgres_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: latex-collab-secrets
+              key: postgres_password
+        - name: INFLUXDB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: latex-collab-config
+              key: influxdb_url
+        volumeMounts:
+        - name: backup-storage
+          mountPath: /app/backups
+      volumes:
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: latex-collab-backups
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: latex-collab-backend
+  labels:
+    app: latex-collab
+    component: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3001
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: latex-collab
+    component: backend
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: latex-collab-backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: latex-collab-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 20
+        periodSeconds: 120
